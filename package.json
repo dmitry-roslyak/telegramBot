@@ -1,0 +1,24 @@
+{
+    "name": "telegram-bot",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "prod": "tsc && cross-env NODE_ENV=production node ./bin/www",
+        "watch": "tsc -w"
+    },
+    "dependencies": {
+        "cookie-parser": "~1.4.3",
+        "debug": "~2.6.9",
+        "express": "~4.16.0",
+        "http-errors": "~1.6.2",
+        "morgan": "~1.9.0",
+        "pug": "2.0.0-beta11",
+        "request": "^2.88.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.0",
+        "@types/node": "^12.6.6",
+        "@types/request": "^2.48.2",
+        "typescript": "^3.5.3"
+    }
+}
