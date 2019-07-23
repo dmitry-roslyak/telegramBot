@@ -7,10 +7,17 @@ const request = req.defaults({
     baseUrl: telegramApi,
     json: true
 });
-class InlineKeyboardMarkup extends Array {
-}
-exports.InlineKeyboardMarkup = InlineKeyboardMarkup;
-function sendMessage(message) {
+// function sendMessage(message: Message) {
+//     request.get({
+//         url: "/sendMessage",
+//         qs: message
+//     }, function (error, httpResponse, body) {
+//         // console.log(body)
+//     })
+// }
+function sendMessage(chat_id, text, reply_markup) {
+    let message = Object.assign({ chat_id,
+        text }, (reply_markup && { reply_markup: JSON.stringify(reply_markup) }));
     request.get({
         url: "/sendMessage",
         qs: message
@@ -19,20 +26,6 @@ function sendMessage(message) {
     });
 }
 exports.sendMessage = sendMessage;
-function sendMessageText(chat_id, text = "EMPTY") {
-    // console.log(chat_id)
-    // console.log(text)
-    request.get({
-        url: "/sendMessage",
-        qs: {
-            chat_id,
-            text: text
-        }
-    }, function (error, httpResponse, body) {
-        console.log(body);
-    });
-}
-exports.sendMessageText = sendMessageText;
 function sendLocation(chat_id, coordinates) {
     if (coordinates && !coordinates.latitude && !coordinates.longitude) {
         console.log("coordinates not available");

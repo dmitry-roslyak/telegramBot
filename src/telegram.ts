@@ -16,38 +16,48 @@ const request = req.defaults({
 interface Message {
     chat_id: number
     text: string
-    reply_markup?: reply_markup
+    reply_markup?: reply_markup | string
 }
-type reply_markup = InlineKeyboardMarkup | string
 
-
+interface reply_markup {
+    inline_keyboard?: InlineKeyboardMarkup
+    keyboard?: ReplyKeyboardMarkup
+}
 
 interface InlineKeyboardButton {
     text: string
     url?: string
     callback_data?: string
 }
-class InlineKeyboardMarkup extends Array<Array<InlineKeyboardButton>> { }
 
-function sendMessage(message: Message) {
+interface KeyboardButton {
+    text: string
+    request_contact?: boolean
+    request_location?: boolean
+}
+
+interface ReplyKeyboardMarkup extends Array<Array<KeyboardButton | string>> { }
+interface InlineKeyboardMarkup extends Array<Array<InlineKeyboardButton>> { }
+
+// function sendMessage(message: Message) {
+//     request.get({
+//         url: "/sendMessage",
+//         qs: message
+//     }, function (error, httpResponse, body) {
+//         // console.log(body)
+//     })
+// }
+function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup) {
+    let message = {
+        chat_id,
+        text,
+        ...(reply_markup && { reply_markup: JSON.stringify(reply_markup) })
+    }
     request.get({
         url: "/sendMessage",
         qs: message
     }, function (error, httpResponse, body) {
         // console.log(body)
-    })
-}
-function sendMessageText(chat_id: number, text: string = "EMPTY") {
-    // console.log(chat_id)
-    // console.log(text)
-    request.get({
-        url: "/sendMessage",
-        qs: {
-            chat_id,
-            text: text
-        }
-    }, function (error, httpResponse, body) {
-        console.log(body)
     })
 }
 function sendLocation(chat_id: number, coordinates: any) {
@@ -66,7 +76,7 @@ function sendLocation(chat_id: number, coordinates: any) {
         // console.log(body)
     })
 }
-function Telegram(callback: RequestCallback): any {
+function Telegram(callback: RequestCallback): void {
     let offset: number = null;
 
     function func(error: any, httpResponse: any, data: any) {
@@ -95,4 +105,4 @@ function Telegram(callback: RequestCallback): any {
     }
 }
 
-export { sendMessage, sendMessageText, sendLocation, Telegram, InlineKeyboardMarkup }
+export { sendMessage, sendLocation, Telegram, InlineKeyboardMarkup, Message }

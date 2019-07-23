@@ -1,4 +1,4 @@
-import { Telegram, sendLocation, sendMessage, InlineKeyboardMarkup } from "./telegram";
+import { Telegram, sendLocation, sendMessage, InlineKeyboardMarkup, Message } from "./telegram";
 import * as req from "request";
 
 const {
@@ -17,13 +17,21 @@ let a = Telegram(function (messages) {
         console.log(element)
         // if (element.message && commandQuery[element.message.from.id] && commandQuery[element.message.from.id].length){}
         if (element.message && element.message.text === "vasia") {
-            sendMessage({ chat_id: element.message.from.id, text: "bomj" })
+            test(element.message.from.id, "bomj")
+            // sendMessage(element.message.from.id, "bomj")
         } else if (element.callback_query) {
-            vesselInfo(element.callback_query.from.id, element.callback_query.data)
+            let data = JSON.parse(element.callback_query.data)
+            if (data["href"]) {
+                vesselInfo(element.callback_query.from.id, data["href"])
+            } else if (data["locationShow"]) {
+                sendLocation(element.callback_query.from.id, data["locationShow"])
+            } else if (data["vesselFavoriteAdd"]) {
+                sendMessage(element.callback_query.from.id, "My fleet currently not available")
+            }
         } else if (element.message && element.message.text === "/start") {
-            sendMessage({ chat_id: element.message.from.id, text: "Драсьте" })
+            sendMessage(element.message.from.id, "Драсьте")
         } else if (element.message && element.message.text.includes('/')) {
-            sendMessage({ chat_id: element.message.from.id, text: "Messages with format /commands, currently not available" })
+            sendMessage(element.message.from.id, "Messages with format /commands, currently not available")
         } else if (element.message && element.message.text) {
             vesselSearch(element.message.from.id, element.message.text)
         }
@@ -33,12 +41,40 @@ function vesselInfoSend(chat_id: number, data: any) {
     let output = "";
 
     for (const key in data) {
-        if ("Coordinates" == key) break;
+        if ("Coordinates" == key) continue;
         output += `${key}: ${data[key]}\n`
     }
 
-    sendMessage({ chat_id, text: output })
-    sendLocation(chat_id, data["Coordinates"])
+    let inline_keyboard: InlineKeyboardMarkup = []
+
+    inline_keyboard.push([
+        {
+            text: `🗺 Show location`, callback_data: JSON.stringify({
+                'locationShow': data["Coordinates"]
+            })
+        },
+        {
+            text: `⭐ Add to my fleet`, callback_data: JSON.stringify({
+                'vesselFavoriteAdd': data["IMO / MMSI"]
+            })
+        },
+    ])
+
+    sendMessage(chat_id, output, { inline_keyboard })
+}
+
+function test(chat_id: number, data: any) {
+    let inline_keyboard: InlineKeyboardMarkup = []
+
+    inline_keyboard.push([
+        {
+            text: `🗺 Show location`, callback_data: "1"
+        },
+        {
+            text: `⭐ Add to my fleet`, callback_data: "2"
+        },
+    ])
+    sendMessage(chat_id, data, { inline_keyboard })
 }
 
 
@@ -52,7 +88,7 @@ function vesselInfo(chat_id: number, vesselHref: string) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
             console.log(`error ${error}`)
             console.error(`httpResponse.statusCode: ${httpResponse && httpResponse.statusCode}`)
-            sendMessage({ chat_id, text: "Oops error happend, please try later" })
+            sendMessage(chat_id, "Oops error happend, please try later")
             return;
         }
         vesselInfoSend(chat_id, data)
@@ -66,35 +102,32 @@ function vesselSearch(chat_id: number, text: string) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
             console.log(`error ${error}`)
             console.error(`httpResponse.statusCode: ${httpResponse && httpResponse.statusCode}`)
-            sendMessage({ chat_id, text: "Oops error happend, please try later" })
+            sendMessage(chat_id, "Oops error happend, please try later")
             return;
         }
 
         if (/\d{7}|\d{9}/.test(text)) {
             vesselInfoSend(chat_id, data)
         } else {
-            let ar: InlineKeyboardMarkup = []
-
-            data.forEach((element: any, i: number) => {
-                i < 9 && ar.push([{ text: `${i}) ${element.name}(${element.country})`, callback_data: element.href }])
-                // output += `${i}) ${element.name}(${element.country})\n`
-            });
-            // let rp = JSON.stringify({
-            //     keyboard: [["Yes", "No"]]
-            // })
-            let text
+            let inline_keyboard: InlineKeyboardMarkup = []
+            let text = "Vessels not found"
             if (data.length) {
                 text = `
                     Found vessels: ${data.length}\n
                     Please select from the following:
                 `;
-            } else text = "Vessels not found"
+            }
 
-            let reply_markup = JSON.stringify({
-                // force_reply: true,
-                inline_keyboard: ar
-            })
-            sendMessage({ chat_id, text, reply_markup })
+            data.forEach((element: any, i: number) => {
+                let cbData = JSON.stringify({
+                    'href': element.href
+                })
+                cbData = cbData.length > 64 ? "0" : cbData
+                i < 9 && inline_keyboard.push([{ text: `${i}) ${element.name}(${element.country})`, callback_data: cbData }])
+                // output += `${i}) ${element.name}(${element.country})\n`
+            });
+
+            sendMessage(chat_id, text, { inline_keyboard })
         }
     })
 }
