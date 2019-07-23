@@ -28,6 +28,7 @@ let a = telegram_1.Telegram(function (messages) {
             else if (data["vesselFavoriteAdd"]) {
                 telegram_1.sendMessage(element.callback_query.from.id, "My fleet currently not available");
             }
+            telegram_1.answerCallbackQuery(element.callback_query.id);
         }
         else if (element.message && element.message.text === "/start") {
             telegram_1.sendMessage(element.message.from.id, "Драсьте");

@@ -1,4 +1,4 @@
-import { Telegram, sendLocation, sendMessage, InlineKeyboardMarkup, Message } from "./telegram";
+import { Telegram, sendLocation, sendMessage, InlineKeyboardMarkup, answerCallbackQuery } from "./telegram";
 import * as req from "request";
 
 const {
@@ -28,6 +28,7 @@ let a = Telegram(function (messages) {
             } else if (data["vesselFavoriteAdd"]) {
                 sendMessage(element.callback_query.from.id, "My fleet currently not available")
             }
+            answerCallbackQuery(element.callback_query.id)
         } else if (element.message && element.message.text === "/start") {
             sendMessage(element.message.from.id, "Драсьте")
         } else if (element.message && element.message.text.includes('/')) {

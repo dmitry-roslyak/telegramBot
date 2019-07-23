@@ -47,6 +47,15 @@ interface InlineKeyboardMarkup extends Array<Array<InlineKeyboardButton>> { }
 //         // console.log(body)
 //     })
 // }
+function answerCallbackQuery(callback_query_id: string, text?: string, show_alert?: boolean, url?: string, cache_time?: number) {
+    request.get({
+        url: "/answerCallbackQuery",
+        qs: {
+            callback_query_id
+        }
+    }, function (error, httpResponse, body) {
+    })
+}
 function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup) {
     let message = {
         chat_id,
@@ -105,4 +114,4 @@ function Telegram(callback: RequestCallback): void {
     }
 }
 
-export { sendMessage, sendLocation, Telegram, InlineKeyboardMarkup, Message }
+export { sendMessage, sendLocation, Telegram, InlineKeyboardMarkup, answerCallbackQuery }

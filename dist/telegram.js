@@ -15,6 +15,16 @@ const request = req.defaults({
 //         // console.log(body)
 //     })
 // }
+function answerCallbackQuery(callback_query_id, text, show_alert, url, cache_time) {
+    request.get({
+        url: "/answerCallbackQuery",
+        qs: {
+            callback_query_id
+        }
+    }, function (error, httpResponse, body) {
+    });
+}
+exports.answerCallbackQuery = answerCallbackQuery;
 function sendMessage(chat_id, text, reply_markup) {
     let message = Object.assign({ chat_id,
         text }, (reply_markup && { reply_markup: JSON.stringify(reply_markup) }));
