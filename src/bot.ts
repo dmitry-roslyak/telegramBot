@@ -9,7 +9,6 @@ const request = req.defaults({
     baseUrl: vesselApi,
     json: true
 })
-// let commandQuery: any = {}
 
 let a = Telegram(function (messages) {
     messages.forEach((element: any) => {
@@ -87,10 +86,10 @@ function vesselInfo(chat_id: number, vesselHref: string) {
         }
     }, function (error, httpResponse, data) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
-            console.log(`error ${error}`)
-            console.error(`httpResponse.statusCode: ${httpResponse && httpResponse.statusCode}`)
+            error && console.error(error)
+            httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
             sendMessage(chat_id, "Oops error happend, please try later")
-            return;
+            return
         }
         vesselInfoSend(chat_id, data)
     })
@@ -101,10 +100,10 @@ function vesselSearch(chat_id: number, text: string) {
         url: "/search/" + text,
     }, function (error, httpResponse, data) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
-            console.log(`error ${error}`)
-            console.error(`httpResponse.statusCode: ${httpResponse && httpResponse.statusCode}`)
+            error && console.error(error)
+            httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
             sendMessage(chat_id, "Oops error happend, please try later")
-            return;
+            return
         }
 
         if (/\d{7}|\d{9}/.test(text)) {
@@ -132,12 +131,5 @@ function vesselSearch(chat_id: number, text: string) {
         }
     })
 }
-// function addQuery(res: any) {
-//     if (commandQuery[res.result.chat.id]) {
-//         commandQuery[res.result.chat.id].push("search result")
-//     } else {
-//         commandQuery[res.result.chat.id] = []
-//     }
-// }
 
 export default a

@@ -7,7 +7,6 @@ const request = req.defaults({
     baseUrl: vesselApi,
     json: true
 });
-// let commandQuery: any = {}
 let a = telegram_1.Telegram(function (messages) {
     messages.forEach((element) => {
         console.log(`callback_query: ${!!element.callback_query}`);
@@ -83,8 +82,8 @@ function vesselInfo(chat_id, vesselHref) {
         }
     }, function (error, httpResponse, data) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
-            console.log(`error ${error}`);
-            console.error(`httpResponse.statusCode: ${httpResponse && httpResponse.statusCode}`);
+            error && console.error(error);
+            httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`);
             telegram_1.sendMessage(chat_id, "Oops error happend, please try later");
             return;
         }
@@ -96,8 +95,8 @@ function vesselSearch(chat_id, text) {
         url: "/search/" + text,
     }, function (error, httpResponse, data) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
-            console.log(`error ${error}`);
-            console.error(`httpResponse.statusCode: ${httpResponse && httpResponse.statusCode}`);
+            error && console.error(error);
+            httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`);
             telegram_1.sendMessage(chat_id, "Oops error happend, please try later");
             return;
         }
@@ -125,12 +124,5 @@ function vesselSearch(chat_id, text) {
         }
     });
 }
-// function addQuery(res: any) {
-//     if (commandQuery[res.result.chat.id]) {
-//         commandQuery[res.result.chat.id].push("search result")
-//     } else {
-//         commandQuery[res.result.chat.id] = []
-//     }
-// }
 exports.default = a;
 //# sourceMappingURL=bot.js.map

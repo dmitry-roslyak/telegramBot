@@ -90,13 +90,12 @@ function Telegram(callback: RequestCallback): void {
 
     function func(error: any, httpResponse: any, data: any) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
-            // if (error || httpResponse.statusCode != 200 || !data.length) {
-            console.error(`httpResponse.statusCode: ${httpResponse.statusCode}`)
-            console.error(error)
+            error && console.error(error)
+            httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
             return
         }
         offset = data.result.length ? data.result[data.result.length - 1].update_id + 1 : null
-        console.log(data)
+        !data.ok && console.warn(data)
         data.result.length && callback.call(null, data.result)
         subscribe();
     }
