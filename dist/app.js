@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
-const bot_1 = require("./bot");
-+bot_1.default;
+require("./telegramBot");
 var createError = require('http-errors');
 var path = require('path');
 var cookieParser = require('cookie-parser');

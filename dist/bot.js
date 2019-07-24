@@ -11,7 +11,6 @@ let a = telegram_1.Telegram(function (messages) {
     messages.forEach((element) => {
         console.log(`callback_query: ${!!element.callback_query}`);
         console.log(element);
-        // if (element.message && commandQuery[element.message.from.id] && commandQuery[element.message.from.id].length){}
         if (element.message && element.message.text === "vasia") {
             test(element.message.from.id, "bomj");
             // sendMessage(element.message.from.id, "bomj")

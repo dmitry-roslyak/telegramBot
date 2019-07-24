@@ -1,7 +1,5 @@
 import express = require("express");
-import a from "./bot"
-
-+a
+require("./telegramBot")
 
 var createError = require('http-errors');
 
