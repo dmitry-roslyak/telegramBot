@@ -1,4 +1,4 @@
-import { Telegram, sendLocation, sendMessage, InlineKeyboardMarkup, answerCallbackQuery } from "./telegram";
+import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup } from "./telegram";
 import vesselAPI from "./vesselsAPI";
 
 interface Vessel {
@@ -13,9 +13,8 @@ interface VesselsListItem {
 
 interface VesselsList extends Array<VesselsListItem> { }
 
-Telegram(function (messages) {
-    messages.forEach((element: any) => {
-        console.log(`callback_query: ${!!element.callback_query}`)
+subscribe(function (messages) {
+    messages.forEach(element => {
         console.log(element)
         if (element.message && element.message.text === "test") {
             test(element.message.from.id, "Its working")
@@ -28,9 +27,9 @@ Telegram(function (messages) {
                     .then((vessel: any) => vesselInfo(chat_id, vessel))
                     .catch(() => sendMessage(chat_id, "Oops error happend, please try later"))
             } else if (data["locationShow"]) {
-                sendLocation(element.callback_query.from.id, data["locationShow"])
+                sendLocation(chat_id, data["locationShow"])
             } else if (data["vesselFavoriteAdd"]) {
-                sendMessage(element.callback_query.from.id, "My fleet currently not available")
+                sendMessage(chat_id, "My fleet currently not available")
             }
             answerCallbackQuery(element.callback_query.id)
         } else if (element.message && element.message.text === "/start") {
@@ -98,7 +97,7 @@ function vesselInfo(chat_id: number, vessel: Vessel) {
     sendMessage(chat_id, output, { inline_keyboard })
 }
 
-function test(chat_id: number, data: any) {
+function test(chat_id: number, data: string) {
     let inline_keyboard: InlineKeyboardMarkup = []
 
     inline_keyboard.push([

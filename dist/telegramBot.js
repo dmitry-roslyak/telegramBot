@@ -2,9 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const telegram_1 = require("./telegram");
 const vesselsAPI_1 = require("./vesselsAPI");
-telegram_1.Telegram(function (messages) {
-    messages.forEach((element) => {
-        console.log(`callback_query: ${!!element.callback_query}`);
+telegram_1.subscribe(function (messages) {
+    messages.forEach(element => {
         console.log(element);
         if (element.message && element.message.text === "test") {
             test(element.message.from.id, "Its working");
@@ -19,10 +18,10 @@ telegram_1.Telegram(function (messages) {
                     .catch(() => telegram_1.sendMessage(chat_id, "Oops error happend, please try later"));
             }
             else if (data["locationShow"]) {
-                telegram_1.sendLocation(element.callback_query.from.id, data["locationShow"]);
+                telegram_1.sendLocation(chat_id, data["locationShow"]);
             }
             else if (data["vesselFavoriteAdd"]) {
-                telegram_1.sendMessage(element.callback_query.from.id, "My fleet currently not available");
+                telegram_1.sendMessage(chat_id, "My fleet currently not available");
             }
             telegram_1.answerCallbackQuery(element.callback_query.id);
         }

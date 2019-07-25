@@ -7,14 +7,6 @@ const request = req.defaults({
     baseUrl: telegramApi,
     json: true
 });
-// function sendMessage(message: Message) {
-//     request.get({
-//         url: "/sendMessage",
-//         qs: message
-//     }, function (error, httpResponse, body) {
-//         // console.log(body)
-//     })
-// }
 function answerCallbackQuery(callback_query_id, text, show_alert, url, cache_time) {
     request.get({
         url: "/answerCallbackQuery",
@@ -53,29 +45,30 @@ function sendLocation(chat_id, coordinates) {
     });
 }
 exports.sendLocation = sendLocation;
-function Telegram(callback) {
+function subscribe(callback) {
     let offset = null;
-    function func(error, httpResponse, data) {
+    let func = function (error, httpResponse, data) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
             error && console.error(error);
             httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`);
+            setInterval(getUpdates, 120 * 1000);
             return;
         }
         offset = data.result.length ? data.result[data.result.length - 1].update_id + 1 : null;
         !data.ok && console.warn(data);
-        data.result.length && callback.call(null, data.result);
-        subscribe();
-    }
-    subscribe();
-    function subscribe() {
+        data.result.length && callback(data.result);
+        getUpdates();
+    };
+    getUpdates();
+    function getUpdates() {
         request.get({
             url: "/getupdates",
             qs: {
                 offset: offset,
-                timeout: 100
+                timeout: 120
             }
         }, func);
     }
 }
-exports.Telegram = Telegram;
+exports.subscribe = subscribe;
 //# sourceMappingURL=telegram.js.map

@@ -1,6 +1,7 @@
 import * as req from "request";
 import { RequestCallback } from "request";
-
+import { Telegram } from "./telegram.1";
+import InlineKeyboardMarkup = Telegram.InlineKeyboardMarkup
 
 const {
     telegram
@@ -13,40 +14,21 @@ const request = req.defaults({
     json: true
 })
 
-interface Message {
-    chat_id: number
-    text: string
-    reply_markup?: reply_markup | string
-}
+// interface Message {
+//     chat_id: number
+//     text: string
+//     reply_markup?: reply_markup | string
+// }
 
 interface reply_markup {
-    inline_keyboard?: InlineKeyboardMarkup
-    keyboard?: ReplyKeyboardMarkup
+    inline_keyboard?: Telegram.InlineKeyboardMarkup
+    keyboard?: Telegram.ReplyKeyboardMarkup
 }
 
-interface InlineKeyboardButton {
-    text: string
-    url?: string
-    callback_data?: string
+interface SubscribeCallback {
+    (updates: Array<Telegram.Update>): void
 }
 
-interface KeyboardButton {
-    text: string
-    request_contact?: boolean
-    request_location?: boolean
-}
-
-interface ReplyKeyboardMarkup extends Array<Array<KeyboardButton | string>> { }
-interface InlineKeyboardMarkup extends Array<Array<InlineKeyboardButton>> { }
-
-// function sendMessage(message: Message) {
-//     request.get({
-//         url: "/sendMessage",
-//         qs: message
-//     }, function (error, httpResponse, body) {
-//         // console.log(body)
-//     })
-// }
 function answerCallbackQuery(callback_query_id: string, text?: string, show_alert?: boolean, url?: string, cache_time?: number) {
     request.get({
         url: "/answerCallbackQuery",
@@ -85,32 +67,33 @@ function sendLocation(chat_id: number, coordinates: any) {
         // console.log(body)
     })
 }
-function Telegram(callback: RequestCallback): void {
+function subscribe(callback: SubscribeCallback): void {
     let offset: number = null;
 
-    function func(error: any, httpResponse: any, data: any) {
+    let func: RequestCallback = function (error, httpResponse, data: { ok: boolean, result: Array<Telegram.Update> }) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
             error && console.error(error)
             httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
+            setInterval(getUpdates, 120 * 1000)
             return
         }
         offset = data.result.length ? data.result[data.result.length - 1].update_id + 1 : null
         !data.ok && console.warn(data)
-        data.result.length && callback.call(null, data.result)
-        subscribe();
+        data.result.length && callback(data.result)
+        getUpdates();
     }
 
-    subscribe();
+    getUpdates();
 
-    function subscribe() {
+    function getUpdates() {
         request.get({
             url: "/getupdates",
             qs: {
                 offset: offset,
-                timeout: 100
+                timeout: 120
             }
         }, func)
     }
 }
 
-export { sendMessage, sendLocation, Telegram, InlineKeyboardMarkup, answerCallbackQuery }
+export { sendMessage, sendLocation, subscribe, answerCallbackQuery, InlineKeyboardMarkup }
