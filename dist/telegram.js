@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const req = require("request");
+const util = require('util');
 const { telegram } = require("../env.json");
 const telegramApi = telegram.apiUrl + telegram.apiKey + "/";
 const request = req.defaults({
@@ -20,12 +21,17 @@ exports.answerCallbackQuery = answerCallbackQuery;
 function sendMessage(chat_id, text, reply_markup) {
     let message = Object.assign({ chat_id,
         text }, (reply_markup && { reply_markup: JSON.stringify(reply_markup) }));
-    request.get({
+    const requestGet = util.promisify(request.get);
+    return requestGet({
         url: "/sendMessage",
         qs: message
-    }, function (error, httpResponse, body) {
-        // console.log(body)
     });
+    // request.get({
+    //     url: "/sendMessage",
+    //     qs: message
+    // }, function (error, httpResponse, body) {
+    //     // console.log(body)
+    // })
 }
 exports.sendMessage = sendMessage;
 function sendLocation(chat_id, coordinates) {

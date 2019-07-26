@@ -2,7 +2,9 @@ import * as req from "request";
 import { RequestCallback } from "request";
 import { Telegram } from "./telegram.1";
 import InlineKeyboardMarkup = Telegram.InlineKeyboardMarkup
+import ReplyKeyboardMarkup = Telegram.ReplyKeyboardMarkup
 
+const util = require('util');
 const {
     telegram
 } = require("../env.json");
@@ -44,12 +46,19 @@ function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup)
         text,
         ...(reply_markup && { reply_markup: JSON.stringify(reply_markup) })
     }
-    request.get({
+
+    const requestGet = util.promisify(request.get);
+
+    return requestGet({
         url: "/sendMessage",
         qs: message
-    }, function (error, httpResponse, body) {
-        // console.log(body)
     })
+    // request.get({
+    //     url: "/sendMessage",
+    //     qs: message
+    // }, function (error, httpResponse, body) {
+    //     // console.log(body)
+    // })
 }
 function sendLocation(chat_id: number, coordinates: any) {
     if (coordinates && !coordinates.latitude && !coordinates.longitude) {
@@ -96,4 +105,4 @@ function subscribe(callback: SubscribeCallback): void {
     }
 }
 
-export { sendMessage, sendLocation, subscribe, answerCallbackQuery, InlineKeyboardMarkup }
+export { sendMessage, sendLocation, subscribe, answerCallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup }

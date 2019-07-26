@@ -30,6 +30,7 @@ export namespace Telegram {
         language_code: string; //Optional.IETF language tag of the user's language
     }
     export interface Message {
+        message_id: number //Unique message identifier inside this chat
         from: User; //Sender
         text: string;
     }
