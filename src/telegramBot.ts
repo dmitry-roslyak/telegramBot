@@ -15,6 +15,12 @@ interface VesselsListItem {
 
 interface VesselsList extends Array<VesselsListItem> { }
 
+enum CallbackQueryActions {
+    href = "href",
+    location = "location",
+    favoritesAdd = "favoritesAdd"
+}
+
 subscribe(function (messages) {
     messages.forEach(element => {
         console.log(element)
@@ -50,24 +56,17 @@ function vesselFoundList(chat_id: number, vessels: VesselsList) {
             Please select from the following:
         `;
     }
-
+    // console.time("Found items buttons create")
     vessels.forEach((element, i) => {
-        // let cbData = JSON.stringify({
-        //     'href': element.href
-        // })
-        // cbData = cbData.length > 64 ? "0" : cbData
-        i < 9 && inline_keyboard.push([{ text: `${i}) ${element.name}(${element.country})`, callback_data: "href:" + i }])
-        // output += `${i}) ${element.name}(${element.country})\n`
+        i < 9 && inline_keyboard.push([{ text: `${vesselFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i }])
     });
+    // console.timeEnd("Found items buttons create")
 
-    sendMessage(chat_id, text, { inline_keyboard }).then((message: any) => {
-        let message_id = message.body.result.message_id
-        Query.create({
-            message_id,
-            chat_id,
-            data: JSON.stringify(vessels),
-        })
-    })
+    sendMessage(chat_id, text, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessels }))
+}
+
+function vesselFlag(country: string) {
+    return `(${country})`
 }
 
 function vesselInfo(chat_id: number, vessel: Vessel) {
@@ -82,21 +81,13 @@ function vesselInfo(chat_id: number, vessel: Vessel) {
 
     inline_keyboard.push([
         {
-            text: `🗺 Show location`, callback_data: "location"
+            text: `🗺 Show location`, callback_data: CallbackQueryActions.location
         },
         {
-            text: `⭐ Add to my fleet`, callback_data: "favoritesAdd"
+            text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
         },
     ])
-
-    sendMessage(chat_id, output, { inline_keyboard }).then((message: any) => {
-        let message_id = message.body.result.message_id
-        Query.create({
-            message_id,
-            chat_id,
-            data: JSON.stringify(vessel),
-        })
-    })
+    sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessel }))
 }
 
 function favorites(chat_id: number, data: Array<any>) {
@@ -106,18 +97,20 @@ function favorites(chat_id: number, data: Array<any>) {
     data.forEach((element, i) => {
         inline_keyboard.push([
             {
-                text: element.name, callback_data: "href:" + i
+                text: element.name, callback_data: CallbackQueryActions.href + ":" + i
             }
         ])
     });
 
-    sendMessage(chat_id, output, { inline_keyboard }).then((message: any) => {
-        let message_id = message.body.result.message_id
-        Query.create({
-            message_id,
-            chat_id,
-            data: JSON.stringify(data),
-        })
+    sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: data }))
+}
+
+function queryCreate(message: any) {
+    let message_id = message.body.result.message_id
+    Query.create({
+        message_id,
+        chat_id: this.chat_id,
+        data: JSON.stringify(this.data),
     })
 }
 
@@ -139,6 +132,7 @@ function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
     if (callback_query.message && callback_query.message.message_id) {
         Query.findOne({
             where: {
+                chat_id: callback_query.from.id,
                 message_id: callback_query.message.message_id
             }
         }).then((query: any) => {
@@ -149,18 +143,18 @@ function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
             let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
 
             switch (action[0]) {
-                case "href":
+                case CallbackQueryActions.href:
                     vesselAPI.getOne(href)
                         .then((vessel: any) => vesselInfo(chat_id, vessel))
                         .catch(() => sendMessage(chat_id, "Oops error happend, please try later"))
                     break;
-                case "location":
+                case CallbackQueryActions.location:
                     sendLocation(chat_id, data["Coordinates"])
                     break;
-                case "favoritesAdd":
+                case CallbackQueryActions.favoritesAdd:
                     Favorite.create({
                         user_id: chat_id,
-                        name: data["IMO / MMSI"],
+                        name: data["name"],
                         href
                     })
                     break;

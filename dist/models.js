@@ -19,26 +19,6 @@ Favorite.init({
     name: { type: sequelize_1.DataTypes.STRING },
     href: sequelize_1.DataTypes.STRING,
 }, { sequelize: init_1.default });
-init_1.default
-    .sync()
-    .then(() => Favorite.create({
-    user_id: 1,
-    name: "fufufu",
-    href: ""
-    // birthday: new Date(1980, 6, 20)
-}))
-    .then((jane) => {
-    console.log(jane.toJSON());
-});
-init_1.default
-    .sync()
-    .then(() => Query.create({
-    message_id: 1,
-    data: ""
-    // birthday: new Date(1980, 6, 20)
-}))
-    .then((jane) => {
-    console.log(jane.toJSON());
-});
+init_1.default.sync();
 exports.default = { Query, Favorite };
 //# sourceMappingURL=models.js.map

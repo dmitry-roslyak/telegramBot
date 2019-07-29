@@ -3,6 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const telegram_1 = require("./telegram");
 const vesselsAPI_1 = require("./vesselsAPI");
 const models_1 = require("./models");
+var CallbackQueryActions;
+(function (CallbackQueryActions) {
+    CallbackQueryActions["href"] = "href";
+    CallbackQueryActions["location"] = "location";
+    CallbackQueryActions["favoritesAdd"] = "favoritesAdd";
+})(CallbackQueryActions || (CallbackQueryActions = {}));
 telegram_1.subscribe(function (messages) {
     messages.forEach(element => {
         console.log(element);
@@ -40,23 +46,23 @@ function vesselFoundList(chat_id, vessels) {
             Please select from the following:
         `;
     }
+    // console.time("Found items buttons create")
     vessels.forEach((element, i) => {
-        // let cbData = JSON.stringify({
-        //     'href': element.href
-        // })
-        // cbData = cbData.length > 64 ? "0" : cbData
-        i < 9 && inline_keyboard.push([{ text: `${i}) ${element.name}(${element.country})`, callback_data: "href:" + i }]);
-        // output += `${i}) ${element.name}(${element.country})\n`
+        i < 9 && inline_keyboard.push([{ text: `${vesselFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i }]);
     });
-    telegram_1.sendMessage(chat_id, text, { inline_keyboard }).then((message) => {
-        let message_id = message.body.result.message_id;
-        models_1.Query.create({
-            message_id,
-            chat_id,
-            data: JSON.stringify(vessels),
-        });
-    });
+    // console.timeEnd("Found items buttons create")
+    telegram_1.sendMessage(chat_id, text, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessels }));
 }
+const countries = require("../countries.json");
+const c1 = require("../_all_countries.json");
+function vesselFlag(country) {
+    return c1[country] ? c1[country].flag.emoji : vesselFlag2(country);
+}
+function vesselFlag2(country) {
+    let res = countries.find((el) => el.name.common == country);
+    return res && res.flag || country;
+}
+// console.log(vesselFlag("Belgium"))
 function vesselInfo(chat_id, vessel) {
     let output = "";
     for (const key in vessel) {
@@ -67,20 +73,13 @@ function vesselInfo(chat_id, vessel) {
     let inline_keyboard = [];
     inline_keyboard.push([
         {
-            text: `🗺 Show location`, callback_data: "location"
+            text: `🗺 Show location`, callback_data: CallbackQueryActions.location
         },
         {
-            text: `⭐ Add to my fleet`, callback_data: "favoritesAdd"
+            text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
         },
     ]);
-    telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then((message) => {
-        let message_id = message.body.result.message_id;
-        models_1.Query.create({
-            message_id,
-            chat_id,
-            data: JSON.stringify(vessel),
-        });
-    });
+    telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessel }));
 }
 function favorites(chat_id, data) {
     let inline_keyboard = [];
@@ -88,17 +87,18 @@ function favorites(chat_id, data) {
     data.forEach((element, i) => {
         inline_keyboard.push([
             {
-                text: element.name, callback_data: "href:" + i
+                text: element.name, callback_data: CallbackQueryActions.href + ":" + i
             }
         ]);
     });
-    telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then((message) => {
-        let message_id = message.body.result.message_id;
-        models_1.Query.create({
-            message_id,
-            chat_id,
-            data: JSON.stringify(data),
-        });
+    telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: data }));
+}
+function queryCreate(message) {
+    let message_id = message.body.result.message_id;
+    models_1.Query.create({
+        message_id,
+        chat_id: this.chat_id,
+        data: JSON.stringify(this.data),
     });
 }
 function test(chat_id, data) {
@@ -117,6 +117,7 @@ function callbackQueryHandler(callback_query) {
     if (callback_query.message && callback_query.message.message_id) {
         models_1.Query.findOne({
             where: {
+                chat_id: callback_query.from.id,
                 message_id: callback_query.message.message_id
             }
         }).then((query) => {
@@ -127,18 +128,18 @@ function callbackQueryHandler(callback_query) {
             let chat_id = callback_query.from.id;
             let href = action.length == 2 ? data[action[1]]["href"] : data["href"];
             switch (action[0]) {
-                case "href":
+                case CallbackQueryActions.href:
                     vesselsAPI_1.default.getOne(href)
                         .then((vessel) => vesselInfo(chat_id, vessel))
                         .catch(() => telegram_1.sendMessage(chat_id, "Oops error happend, please try later"));
                     break;
-                case "location":
+                case CallbackQueryActions.location:
                     telegram_1.sendLocation(chat_id, data["Coordinates"]);
                     break;
-                case "favoritesAdd":
+                case CallbackQueryActions.favoritesAdd:
                     models_1.Favorite.create({
                         user_id: chat_id,
-                        name: data["IMO / MMSI"],
+                        name: data["name"],
                         href
                     });
                     break;

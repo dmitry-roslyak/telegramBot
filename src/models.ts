@@ -17,31 +17,7 @@ Favorite.init({
     href: DataTypes.STRING,
 }, { sequelize });
 
-sequelize
-    .sync()
-    .then(() =>
-        Favorite.create({
-            user_id: 1,
-            name: "fufufu",
-            href: ""
-            // birthday: new Date(1980, 6, 20)
-        })
-    )
-    .then((jane: any) => {
-        console.log(jane.toJSON());
-    });
-sequelize
-    .sync()
-    .then(() =>
-        Query.create({
-            message_id: 1,
-            data: ""
-            // birthday: new Date(1980, 6, 20)
-        })
-    )
-    .then((jane: any) => {
-        console.log(jane.toJSON());
-    });
+sequelize.sync()
 
 // Product.belongsTo(Discount);
 // Product.hasMany(Spec, { foreignKey: "prod_id", constraints: false });
