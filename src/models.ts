@@ -19,9 +19,5 @@ Favorite.init({
 
 sequelize.sync()
 
-// Product.belongsTo(Discount);
-// Product.hasMany(Spec, { foreignKey: "prod_id", constraints: false });
-// Product.Specs = Product.hasMany(Spec, { foreignKey: "prod_id", constraints: false });
-
 export { Query, Favorite }
 export default { Query, Favorite }

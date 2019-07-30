@@ -1,4 +1,4 @@
-import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup } from "./telegram";
+import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL } from "./telegram";
 import vesselAPI from "./vesselsAPI";
 import { Favorite, Query } from "./models";
 import { Telegram } from "./telegram.1";
@@ -21,11 +21,9 @@ subscribe(function (messages) {
         } else if (element.message && element.message.text === "/start") {
             sendMessage(element.message.from.id, "Драсьте")
         } else if (element.message && element.message.text === "/fav") {
-            Favorite.findAll({ where: { user_id: element.message.from.id } }).then((f: any) => {
-                favorites(element.message.from.id, f)
-            })
-        } else if (element.message && element.message.text) {
-            vesselAPI.find(element.message.text)
+            favorites(element.message.from.id)
+        } else if (element.message && element.message.text && element.message.text.length > 2) {
+            vesselAPI.find(encodeURI(element.message.text))
                 .then((vessels: any) => {
                     /\d{7}|\d{9}/.test(element.message.text) ?
                         vesselInfo(element.message.from.id, vessels) :
@@ -37,22 +35,20 @@ subscribe(function (messages) {
 })
 
 function vesselFoundList(chat_id: number, vessels: VesselsList) {
-    let inline_keyboard: InlineKeyboardMarkup = []
     let text = "Vessels not found"
 
     if (vessels.length) {
-        text = `
-            Found vessels: ${vessels.length}\n
-            Please select from the following:
-        `;
+        vessels.length > 15 && (vessels.length = 15)
+        text = `Found vessels: ${vessels.length} 🔎🚢\nPlease select from the following 👇`;
     }
-    // console.time("Found items buttons create")
-    vessels.forEach((element, i) => {
-        i < 9 && inline_keyboard.push([{ text: `${countryFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i }])
-    });
-    // console.timeEnd("Found items buttons create")
 
-    sendMessage(chat_id, text, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessels }))
+    vesselButtonList(chat_id, text, vessels)
+}
+
+function favorites(chat_id: number) {
+    Favorite.findAll({ where: { user_id: chat_id } }).then((data: Array<any>) => {
+        vesselButtonList(chat_id, "🚢 My fleet", data)
+    })
 }
 
 function vesselInfo(chat_id: number, vessel: Vessel) {
@@ -69,7 +65,7 @@ function vesselInfo(chat_id: number, vessel: Vessel) {
 
     inline_keyboard.push([
         {
-            text: `🗺 Show location`, callback_data: CallbackQueryActions.location
+            text: `🧭 Show location`, callback_data: CallbackQueryActions.location
         },
         {
             text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
@@ -78,19 +74,28 @@ function vesselInfo(chat_id: number, vessel: Vessel) {
     sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessel }))
 }
 
-function favorites(chat_id: number, data: Array<any>) {
-    let inline_keyboard: InlineKeyboardMarkup = []
+function vesselButtonList(chat_id: number, text: string, vessels: VesselsList) {
+    let array: any[] = []
 
-    let output = "🚢 My fleet:"
-    data.forEach((element, i) => {
-        inline_keyboard.push([
-            {
-                text: element.name, callback_data: CallbackQueryActions.href + ":" + i
-            }
-        ])
+    vessels.forEach((element, i) => {
+        array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i })
     });
 
-    sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: data }))
+    sendMessage(chat_id, text, { inline_keyboard: buttonsGrid(array, 3) }).then(queryCreate.bind({ chat_id, data: vessels }))
+}
+
+function buttonsGrid(array: any[], maxColumn?: number) {
+    let keyboard: InlineKeyboardMarkup = []
+    for (let c = 0, i = 0; i < array.length; c++) {
+        keyboard.push([])
+        keyboard.forEach((el: any, index: number) => {
+            if (c != index) return
+            for (let j = 1; j <= maxColumn && i < array.length; j++ , i++) {
+                el.push(array[i])
+            }
+        })
+    }
+    return keyboard;
 }
 
 function queryCreate(message: any) {
@@ -100,20 +105,6 @@ function queryCreate(message: any) {
         chat_id: this.chat_id,
         data: JSON.stringify(this.data),
     })
-}
-
-function test(chat_id: number, data: string) {
-    let keyboard: ReplyKeyboardMarkup = []
-
-    keyboard.push([
-        {
-            text: `🗺 Show location`
-        },
-        {
-            text: `⭐ Add to my fleet`
-        },
-    ])
-    sendMessage(chat_id, data, { keyboard })
 }
 
 function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {

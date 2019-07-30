@@ -22,12 +22,10 @@ telegram_1.subscribe(function (messages) {
             telegram_1.sendMessage(element.message.from.id, "Драсьте");
         }
         else if (element.message && element.message.text === "/fav") {
-            models_1.Favorite.findAll({ where: { user_id: element.message.from.id } }).then((f) => {
-                favorites(element.message.from.id, f);
-            });
+            favorites(element.message.from.id);
         }
-        else if (element.message && element.message.text) {
-            vesselsAPI_1.default.find(element.message.text)
+        else if (element.message && element.message.text && element.message.text.length > 2) {
+            vesselsAPI_1.default.find(encodeURI(element.message.text))
                 .then((vessels) => {
                 /\d{7}|\d{9}/.test(element.message.text) ?
                     vesselInfo(element.message.from.id, vessels) :
@@ -38,20 +36,17 @@ telegram_1.subscribe(function (messages) {
     });
 });
 function vesselFoundList(chat_id, vessels) {
-    let inline_keyboard = [];
     let text = "Vessels not found";
     if (vessels.length) {
-        text = `
-            Found vessels: ${vessels.length}\n
-            Please select from the following:
-        `;
+        vessels.length > 15 && (vessels.length = 15);
+        text = `Found vessels: ${vessels.length} 🔎🚢\nPlease select from the following 👇`;
     }
-    // console.time("Found items buttons create")
-    vessels.forEach((element, i) => {
-        i < 9 && inline_keyboard.push([{ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_1_1.CallbackQueryActions.href + ":" + i }]);
+    vesselButtonList(chat_id, text, vessels);
+}
+function favorites(chat_id) {
+    models_1.Favorite.findAll({ where: { user_id: chat_id } }).then((data) => {
+        vesselButtonList(chat_id, "🚢 My fleet", data);
     });
-    // console.timeEnd("Found items buttons create")
-    telegram_1.sendMessage(chat_id, text, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessels }));
 }
 function vesselInfo(chat_id, vessel) {
     let output = "";
@@ -65,7 +60,7 @@ function vesselInfo(chat_id, vessel) {
     let inline_keyboard = [];
     inline_keyboard.push([
         {
-            text: `🗺 Show location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
+            text: `🧭 Show location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
         },
         {
             text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd
@@ -73,17 +68,26 @@ function vesselInfo(chat_id, vessel) {
     ]);
     telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessel }));
 }
-function favorites(chat_id, data) {
-    let inline_keyboard = [];
-    let output = "🚢 My fleet:";
-    data.forEach((element, i) => {
-        inline_keyboard.push([
-            {
-                text: element.name, callback_data: telegramBot_1_1.CallbackQueryActions.href + ":" + i
-            }
-        ]);
+function vesselButtonList(chat_id, text, vessels) {
+    let array = [];
+    vessels.forEach((element, i) => {
+        array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_1_1.CallbackQueryActions.href + ":" + i });
     });
-    telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: data }));
+    telegram_1.sendMessage(chat_id, text, { inline_keyboard: buttonsGrid(array, 3) }).then(queryCreate.bind({ chat_id, data: vessels }));
+}
+function buttonsGrid(array, maxColumn) {
+    let keyboard = [];
+    for (let c = 0, i = 0; i < array.length; c++) {
+        keyboard.push([]);
+        keyboard.forEach((el, index) => {
+            if (c != index)
+                return;
+            for (let j = 1; j <= maxColumn && i < array.length; j++, i++) {
+                el.push(array[i]);
+            }
+        });
+    }
+    return keyboard;
 }
 function queryCreate(message) {
     let message_id = message.body.result.message_id;
@@ -92,18 +96,6 @@ function queryCreate(message) {
         chat_id: this.chat_id,
         data: JSON.stringify(this.data),
     });
-}
-function test(chat_id, data) {
-    let keyboard = [];
-    keyboard.push([
-        {
-            text: `🗺 Show location`
-        },
-        {
-            text: `⭐ Add to my fleet`
-        },
-    ]);
-    telegram_1.sendMessage(chat_id, data, { keyboard });
 }
 function callbackQueryHandler(callback_query) {
     if (callback_query.message && callback_query.message.message_id) {
