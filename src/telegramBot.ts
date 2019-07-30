@@ -2,23 +2,13 @@ import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboa
 import vesselAPI from "./vesselsAPI";
 import { Favorite, Query } from "./models";
 import { Telegram } from "./telegram.1";
+import { VesselsList, CallbackQueryActions, VesselPropertyArray, Vessel, VesselProperty, VesselMetricSystem } from "./telegramBot.1";
 
-interface Vessel {
-    [property: string]: string
-}
+const countries = require("../countries.json")
 
-interface VesselsListItem {
-    href: string
-    name: string
-    country: string
-}
-
-interface VesselsList extends Array<VesselsListItem> { }
-
-enum CallbackQueryActions {
-    href = "href",
-    location = "location",
-    favoritesAdd = "favoritesAdd"
+function countryFlag(country: string) {
+    let res = countries.find((el: any) => el.name.common == country || el.cca3 == country)
+    return res && res.flag || ""
 }
 
 subscribe(function (messages) {
@@ -58,24 +48,22 @@ function vesselFoundList(chat_id: number, vessels: VesselsList) {
     }
     // console.time("Found items buttons create")
     vessels.forEach((element, i) => {
-        i < 9 && inline_keyboard.push([{ text: `${vesselFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i }])
+        i < 9 && inline_keyboard.push([{ text: `${countryFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i }])
     });
     // console.timeEnd("Found items buttons create")
 
     sendMessage(chat_id, text, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessels }))
 }
 
-function vesselFlag(country: string) {
-    return `(${country})`
-}
-
 function vesselInfo(chat_id: number, vessel: Vessel) {
     let output = "";
 
-    for (const key in vessel) {
-        if ("Coordinates" == key || "href" == key) continue;
-        output += `${key}: ${vessel[key]}\n`
-    }
+    VesselPropertyArray.forEach((property, i) => {
+        if (!(i % 2)) return
+        else if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate)
+            vessel[property] = (new Date(vessel[property])).toLocaleString()
+        output += `${property}: ${[vessel[property]]}\n`
+    })
 
     let inline_keyboard: InlineKeyboardMarkup = []
 
@@ -130,16 +118,16 @@ function test(chat_id: number, data: string) {
 
 function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
     if (callback_query.message && callback_query.message.message_id) {
+        let chat_id = callback_query.from.id
         Query.findOne({
             where: {
-                chat_id: callback_query.from.id,
+                chat_id,
                 message_id: callback_query.message.message_id
             }
         }).then((query: any) => {
             if (!query) return;
             let action = callback_query.data.split(":")
             let data = JSON.parse(query.data)
-            let chat_id = callback_query.from.id
             let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
 
             switch (action[0]) {
@@ -154,12 +142,12 @@ function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
                 case CallbackQueryActions.favoritesAdd:
                     Favorite.create({
                         user_id: chat_id,
-                        name: data["name"],
+                        name: data[VesselProperty.name],
                         href
                     })
                     break;
             }
             answerCallbackQuery(callback_query.id)
-        })
+        }).catch(() => sendMessage(chat_id, "Query result is too old, please submit new one"))
     }
 }
