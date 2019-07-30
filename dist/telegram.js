@@ -4,6 +4,8 @@ const req = require("request");
 const util = require('util');
 const { telegram } = require("../env.json");
 const telegramApi = telegram.apiUrl + telegram.apiKey + "/";
+const contactUsURL = telegram.contactURL;
+exports.contactUsURL = contactUsURL;
 const request = req.defaults({
     baseUrl: telegramApi,
     json: true

@@ -11,6 +11,8 @@ const {
 
 const telegramApi = telegram.apiUrl + telegram.apiKey + "/"
 
+const contactUsURL = telegram.contactURL
+
 const request = req.defaults({
     baseUrl: telegramApi,
     json: true
@@ -105,4 +107,4 @@ function subscribe(callback: SubscribeCallback): void {
     }
 }
 
-export { sendMessage, sendLocation, subscribe, answerCallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup }
+export { sendMessage, sendLocation, subscribe, answerCallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL }

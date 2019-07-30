@@ -20,6 +20,8 @@ subscribe(function (messages) {
             callbackQueryHandler(element.callback_query)
         } else if (element.message && element.message.text === "/start") {
             sendMessage(element.message.from.id, "Драсьте")
+        } else if (element.message && element.message.text === "/menu") {
+            menu(element.message.from.id)
         } else if (element.message && element.message.text === "/fav") {
             favorites(element.message.from.id)
         } else if (element.message && element.message.text && element.message.text.length > 2) {
@@ -33,6 +35,25 @@ subscribe(function (messages) {
         }
     });
 })
+
+function menu(chat_id: number) {
+    let output = "Please select from the following options 👇";
+
+    let inline_keyboard: InlineKeyboardMarkup = []
+
+    inline_keyboard.push([
+        // {
+        //     text: `🔎 Search`, callback_data: CallbackQueryActions.search
+        // }, 
+        {
+            text: `🚢 My fleet`, callback_data: CallbackQueryActions.favorites //url: "tg://fav"
+        }, {
+            text: `💬 Cotact us`, url: contactUsURL
+        }
+    ])
+
+    sendMessage(chat_id, output, { inline_keyboard })
+}
 
 function vesselFoundList(chat_id: number, vessels: VesselsList) {
     let text = "Vessels not found"
@@ -110,35 +131,46 @@ function queryCreate(message: any) {
 function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
     if (callback_query.message && callback_query.message.message_id) {
         let chat_id = callback_query.from.id
-        Query.findOne({
-            where: {
-                chat_id,
-                message_id: callback_query.message.message_id
-            }
-        }).then((query: any) => {
-            if (!query) return;
-            let action = callback_query.data.split(":")
-            let data = JSON.parse(query.data)
-            let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
+        let action = callback_query.data.split(":")
+        switch (action[0]) {
+            case CallbackQueryActions.search:
+                answerCallbackQuery(callback_query.id)
+                break;
+            case CallbackQueryActions.favorites:
+                favorites(chat_id)
+                answerCallbackQuery(callback_query.id)
+                break;
+            default:
+                Query.findOne({
+                    where: {
+                        chat_id,
+                        message_id: callback_query.message.message_id
+                    }
+                }).then((query: any) => {
+                    if (!query) return;
+                    let data = JSON.parse(query.data)
+                    let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
 
-            switch (action[0]) {
-                case CallbackQueryActions.href:
-                    vesselAPI.getOne(href)
-                        .then((vessel: any) => vesselInfo(chat_id, vessel))
-                        .catch(() => sendMessage(chat_id, "Oops error happend, please try later"))
-                    break;
-                case CallbackQueryActions.location:
-                    sendLocation(chat_id, data["Coordinates"])
-                    break;
-                case CallbackQueryActions.favoritesAdd:
-                    Favorite.create({
-                        user_id: chat_id,
-                        name: data[VesselProperty.name],
-                        href
-                    })
-                    break;
-            }
-            answerCallbackQuery(callback_query.id)
-        }).catch(() => sendMessage(chat_id, "Query result is too old, please submit new one"))
+                    switch (action[0]) {
+                        case CallbackQueryActions.href:
+                            vesselAPI.getOne(href)
+                                .then((vessel: any) => vesselInfo(chat_id, vessel))
+                                .catch(() => sendMessage(chat_id, "Oops error happend, please try later"))
+                            break;
+                        case CallbackQueryActions.location:
+                            sendLocation(chat_id, data["Coordinates"])
+                            break;
+                        case CallbackQueryActions.favoritesAdd:
+                            Favorite.create({
+                                user_id: chat_id,
+                                name: data[VesselProperty.name],
+                                href
+                            })
+                            break;
+                    }
+                    answerCallbackQuery(callback_query.id)
+                }).catch(() => sendMessage(chat_id, "Query result is too old, please submit new one"))
+                break;
+        }
     }
 }

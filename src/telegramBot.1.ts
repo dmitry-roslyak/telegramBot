@@ -11,7 +11,10 @@ export interface VesselsList extends Array<VesselsListItem> {
 export enum CallbackQueryActions {
     href = "href",
     location = "location",
-    favoritesAdd = "favoritesAdd"
+    favoritesAdd = "favoritesAdd",
+    search = "search",
+    contact = "contact",
+    favorites = "favorites"
 }
 export enum VesselProperty {
     name = "name",

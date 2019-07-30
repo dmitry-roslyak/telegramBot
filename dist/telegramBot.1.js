@@ -5,6 +5,9 @@ var CallbackQueryActions;
     CallbackQueryActions["href"] = "href";
     CallbackQueryActions["location"] = "location";
     CallbackQueryActions["favoritesAdd"] = "favoritesAdd";
+    CallbackQueryActions["search"] = "search";
+    CallbackQueryActions["contact"] = "contact";
+    CallbackQueryActions["favorites"] = "favorites";
 })(CallbackQueryActions = exports.CallbackQueryActions || (exports.CallbackQueryActions = {}));
 var VesselProperty;
 (function (VesselProperty) {
