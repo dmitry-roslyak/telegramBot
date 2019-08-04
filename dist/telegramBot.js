@@ -78,7 +78,10 @@ function vesselInfo(chat_id, vessel) {
     let inline_keyboard = [];
     inline_keyboard.push([
         {
-            text: `🧭 Show location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
+            text: `🧭 Location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
+        },
+        {
+            text: `📷 Vessel photo`, callback_data: telegramBot_1_1.CallbackQueryActions.photo
         },
         {
             text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd
@@ -146,6 +149,11 @@ function callbackQueryHandler(callback_query) {
                             break;
                         case telegramBot_1_1.CallbackQueryActions.location:
                             telegram_1.sendLocation(chat_id, data["Coordinates"]);
+                            break;
+                        case telegramBot_1_1.CallbackQueryActions.photo:
+                            vesselsAPI_1.default.imageFind(data[telegramBot_1_1.VesselProperty.MMSI]).then((imgSrc) => {
+                                telegram_1.sendPhoto(chat_id, imgSrc);
+                            }).catch(() => telegram_1.sendMessage(chat_id, "Sorry photo not available for this vessel"));
                             break;
                         case telegramBot_1_1.CallbackQueryActions.favoritesAdd:
                             models_1.Favorite.create({

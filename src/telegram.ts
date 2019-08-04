@@ -78,6 +78,17 @@ function sendLocation(chat_id: number, coordinates: any) {
         // console.log(body)
     })
 }
+function sendPhoto(chat_id: number | string, photo: string) {
+    request.get({
+        url: "/sendPhoto",
+        qs: {
+            chat_id,
+            photo
+        }
+    }, function (error, httpResponse, body) {
+        // console.log(body)
+    })
+}
 function subscribe(callback: SubscribeCallback): void {
     let offset: number = null;
 
@@ -107,4 +118,4 @@ function subscribe(callback: SubscribeCallback): void {
     }
 }
 
-export { sendMessage, sendLocation, subscribe, answerCallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL }
+export { sendMessage, sendLocation, sendPhoto, subscribe, answerCallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL }

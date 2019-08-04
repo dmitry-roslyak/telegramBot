@@ -8,6 +8,7 @@ var CallbackQueryActions;
     CallbackQueryActions["search"] = "search";
     CallbackQueryActions["contact"] = "contact";
     CallbackQueryActions["favorites"] = "favorites";
+    CallbackQueryActions["photo"] = "photo";
 })(CallbackQueryActions = exports.CallbackQueryActions || (exports.CallbackQueryActions = {}));
 var VesselProperty;
 (function (VesselProperty) {

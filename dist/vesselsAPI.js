@@ -32,7 +32,17 @@ const vesselAPI = {
                 url: "/search/" + text,
             }, requestHandler.bind({ resolve, reject }));
         });
-    }
+    },
+    imageFind: function (mmsi) {
+        return new Promise((resolve, reject) => {
+            request.get({
+                url: "/imageFind/",
+                qs: {
+                    mmsi
+                }
+            }, requestHandler.bind({ resolve, reject }));
+        });
+    },
 };
 exports.default = vesselAPI;
 //# sourceMappingURL=vesselsAPI.js.map

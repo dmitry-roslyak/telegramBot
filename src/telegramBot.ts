@@ -1,4 +1,4 @@
-import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL } from "./telegram";
+import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL, sendPhoto } from "./telegram";
 import vesselAPI from "./vesselsAPI";
 import { Favorite, Query } from "./models";
 import { Telegram } from "./telegram.1";
@@ -86,7 +86,10 @@ function vesselInfo(chat_id: number, vessel: Vessel) {
 
     inline_keyboard.push([
         {
-            text: `🧭 Show location`, callback_data: CallbackQueryActions.location
+            text: `🧭 Location`, callback_data: CallbackQueryActions.location
+        },
+        {
+            text: `📷 Vessel photo`, callback_data: CallbackQueryActions.photo
         },
         {
             text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
@@ -159,6 +162,11 @@ function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
                             break;
                         case CallbackQueryActions.location:
                             sendLocation(chat_id, data["Coordinates"])
+                            break;
+                        case CallbackQueryActions.photo:
+                            vesselAPI.imageFind(data[VesselProperty.MMSI]).then((imgSrc: string) => {
+                                sendPhoto(chat_id, imgSrc)
+                            }).catch(() => sendMessage(chat_id, "Sorry photo not available for this vessel"))
                             break;
                         case CallbackQueryActions.favoritesAdd:
                             Favorite.create({

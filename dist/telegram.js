@@ -53,6 +53,18 @@ function sendLocation(chat_id, coordinates) {
     });
 }
 exports.sendLocation = sendLocation;
+function sendPhoto(chat_id, photo) {
+    request.get({
+        url: "/sendPhoto",
+        qs: {
+            chat_id,
+            photo
+        }
+    }, function (error, httpResponse, body) {
+        // console.log(body)
+    });
+}
+exports.sendPhoto = sendPhoto;
 function subscribe(callback) {
     let offset = null;
     let func = function (error, httpResponse, data) {

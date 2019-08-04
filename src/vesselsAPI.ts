@@ -34,7 +34,17 @@ const vesselAPI = {
                 url: "/search/" + text,
             }, requestHandler.bind({ resolve, reject }))
         })
-    }
+    },
+    imageFind: function (mmsi: string | number) {
+        return new Promise((resolve, reject) => {
+            request.get({
+                url: "/imageFind/",
+                qs: {
+                    mmsi
+                }
+            }, requestHandler.bind({ resolve, reject }))
+        })
+    },
 }
 
 export default vesselAPI

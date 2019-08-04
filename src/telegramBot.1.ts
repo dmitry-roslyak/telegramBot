@@ -14,7 +14,8 @@ export enum CallbackQueryActions {
     favoritesAdd = "favoritesAdd",
     search = "search",
     contact = "contact",
-    favorites = "favorites"
+    favorites = "favorites",
+    photo = "photo"
 }
 export enum VesselProperty {
     name = "name",
