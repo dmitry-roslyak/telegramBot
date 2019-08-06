@@ -18,12 +18,6 @@ const request = req.defaults({
     json: true
 })
 
-// interface Message {
-//     chat_id: number
-//     text: string
-//     reply_markup?: reply_markup | string
-// }
-
 interface reply_markup {
     inline_keyboard?: Telegram.InlineKeyboardMarkup
     keyboard?: Telegram.ReplyKeyboardMarkup
@@ -67,15 +61,16 @@ function sendLocation(chat_id: number, coordinates: any) {
         console.log("coordinates not available")
         return;
     }
-    request.get({
+
+    const requestGet = util.promisify(request.get);
+
+    return requestGet({
         url: "/sendLocation",
         qs: {
             chat_id,
             latitude: coordinates.latitude,
             longitude: coordinates.longitude
         }
-    }, function (error, httpResponse, body) {
-        // console.log(body)
     })
 }
 function sendPhoto(chat_id: number | string, photo: string) {

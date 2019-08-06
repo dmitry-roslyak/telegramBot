@@ -14,6 +14,7 @@ Query.init({
 Favorite.init({
     user_id: { type: DataTypes.INTEGER },
     name: { type: DataTypes.STRING },
+    country: DataTypes.STRING,
     href: DataTypes.STRING,
 }, { sequelize });
 

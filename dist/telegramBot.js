@@ -73,7 +73,8 @@ function vesselInfo(chat_id, vessel) {
             return;
         else if (property == telegramBot_1_1.VesselProperty.estimatedArrivalDate || property == telegramBot_1_1.VesselProperty.lastReportDate)
             vessel[property] = (new Date(vessel[property])).toLocaleString();
-        output += `${property}: ${[vessel[property]]}\n`;
+        else if (vessel[property])
+            output += `${property}: ${[vessel[property]]}\n`;
     });
     let inline_keyboard = [];
     inline_keyboard.push([
@@ -159,6 +160,7 @@ function callbackQueryHandler(callback_query) {
                             models_1.Favorite.create({
                                 user_id: chat_id,
                                 name: data[telegramBot_1_1.VesselProperty.name],
+                                country: data[telegramBot_1_1.VesselProperty.flag],
                                 href
                             });
                             break;

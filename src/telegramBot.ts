@@ -79,7 +79,8 @@ function vesselInfo(chat_id: number, vessel: Vessel) {
         if (!(i % 2)) return
         else if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate)
             vessel[property] = (new Date(vessel[property])).toLocaleString()
-        output += `${property}: ${[vessel[property]]}\n`
+        else if (vessel[property])
+            output += `${property}: ${[vessel[property]]}\n`
     })
 
     let inline_keyboard: InlineKeyboardMarkup = []
@@ -172,6 +173,7 @@ function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
                             Favorite.create({
                                 user_id: chat_id,
                                 name: data[VesselProperty.name],
+                                country: data[VesselProperty.flag],
                                 href
                             })
                             break;

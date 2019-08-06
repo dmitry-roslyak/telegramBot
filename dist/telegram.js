@@ -41,15 +41,14 @@ function sendLocation(chat_id, coordinates) {
         console.log("coordinates not available");
         return;
     }
-    request.get({
+    const requestGet = util.promisify(request.get);
+    return requestGet({
         url: "/sendLocation",
         qs: {
             chat_id,
             latitude: coordinates.latitude,
             longitude: coordinates.longitude
         }
-    }, function (error, httpResponse, body) {
-        // console.log(body)
     });
 }
 exports.sendLocation = sendLocation;
