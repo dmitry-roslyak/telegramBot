@@ -43,6 +43,7 @@ class UpdateHandler {
                     this.callbackQueryHandler(element.callback_query, action[0], href, data);
                 }).catch((err) => {
                     // console.error(err);
+                    telegram_1.answerCallbackQuery(element.callback_query.id);
                     telegram_1.sendMessage(this.chat_id, "Query result is too old, please submit new one");
                 });
             }

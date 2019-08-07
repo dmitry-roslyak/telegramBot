@@ -12,174 +12,185 @@ function countryFlag(country: string) {
 }
 
 subscribe(function (messages) {
-    messages.forEach(element => {
-        console.log(element)
-        if (element.message && element.message.text === "test") {
-            sendMessage(element.message.from.id, "Its working")
-        } else if (element.callback_query) {
-            callbackQueryHandler(element.callback_query)
-        } else if (element.message && element.message.text === "/start") {
-            sendMessage(element.message.from.id, "Драсьте")
-        } else if (element.message && element.message.text === "/menu") {
-            menu(element.message.from.id)
-        } else if (element.message && element.message.text === "/fav") {
-            favorites(element.message.from.id)
-        } else if (element.message && element.message.text && element.message.text.length > 2) {
-            vesselAPI.find(encodeURI(element.message.text))
-                .then((vessels: any) => {
-                    /\d{7}|\d{9}/.test(element.message.text) ?
-                        vesselInfo(element.message.from.id, vessels) :
-                        vesselFoundList(element.message.from.id, vessels)
-                })
-                .catch(() => sendMessage(element.message.from.id, "Oops error happend, please try later"))
-        }
-    });
+    messages.forEach(element => new UpdateHandler(element));
 })
 
-function menu(chat_id: number) {
-    let output = "Please select from the following options 👇";
+class UpdateHandler {
+    chat_id: number
 
-    let inline_keyboard: InlineKeyboardMarkup = []
-
-    inline_keyboard.push([
-        // {
-        //     text: `🔎 Search`, callback_data: CallbackQueryActions.search
-        // }, 
-        {
-            text: `🚢 My fleet`, callback_data: CallbackQueryActions.favorites //url: "tg://fav"
-        }, {
-            text: `💬 Cotact us`, url: contactUsURL
+    constructor(element: Telegram.Update) {
+        if (element.message) {
+            this.chat_id = element.message.from.id
+            this.messageHandler(element.message.text);
+        } else if (element.callback_query && element.callback_query.message) {
+            this.chat_id = element.callback_query.from.id
+            let action = element.callback_query.data.split(":")
+            if (([CallbackQueryActions.href, CallbackQueryActions.location, CallbackQueryActions.photo, CallbackQueryActions.favoritesAdd] as string[]).includes(action[0])) {
+                Query.findOne({
+                    where: {
+                        chat_id: this.chat_id,
+                        message_id: element.callback_query.message.message_id
+                    }
+                }).then((query: any) => {
+                    if (!query) return Promise.reject("Query not found")
+                    let data = JSON.parse(query.data)
+                    let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
+                    this.callbackQueryHandler(element.callback_query, action[0], href, data)
+                }).catch((err) => {
+                    // console.error(err);
+                    answerCallbackQuery(element.callback_query.id)
+                    sendMessage(this.chat_id, "Query result is too old, please submit new one")
+                })
+            } else
+                this.callbackQueryHandler(element.callback_query, action[0])
         }
-    ])
-
-    sendMessage(chat_id, output, { inline_keyboard })
-}
-
-function vesselFoundList(chat_id: number, vessels: VesselsList) {
-    let text = "Vessels not found"
-
-    if (vessels.length) {
-        vessels.length > 15 && (vessels.length = 15)
-        text = `Found vessels: ${vessels.length} 🔎🚢\nPlease select from the following 👇`;
     }
 
-    vesselButtonList(chat_id, text, vessels)
-}
+    private messageHandler(text: string) {
+        if (text === "/start") {
+            sendMessage(this.chat_id, "Драсьте")
+        } else if (text === "/menu") {
+            this.menu()
+        } else if (text === "/fav") {
+            this.favorites()
+        } else if (text && text.length > 2) {
+            vesselAPI.find(encodeURI(text))
+                .then((vessels: any) => {
+                    /\d{7}|\d{9}/.test(text) ? this.vesselInfo(vessels) : this.vesselFoundList(vessels)
+                })
+                .catch(() => sendMessage(this.chat_id, "Oops error happend, please try later"))
+        }
+    }
 
-function favorites(chat_id: number) {
-    Favorite.findAll({ where: { user_id: chat_id } }).then((data: Array<any>) => {
-        vesselButtonList(chat_id, "🚢 My fleet", data)
-    })
-}
+    private menu() {
+        let output = "Please select from the following options 👇";
 
-function vesselInfo(chat_id: number, vessel: Vessel) {
-    let output = "";
+        let inline_keyboard: InlineKeyboardMarkup = []
 
-    VesselPropertyArray.forEach((property, i) => {
-        if (!(i % 2)) return
-        else if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate)
-            vessel[property] = (new Date(vessel[property])).toLocaleString()
-        else if (vessel[property])
-            output += `${property}: ${[vessel[property]]}\n`
-    })
-
-    let inline_keyboard: InlineKeyboardMarkup = []
-
-    inline_keyboard.push([
-        {
-            text: `🧭 Location`, callback_data: CallbackQueryActions.location
-        },
-        {
-            text: `📷 Vessel photo`, callback_data: CallbackQueryActions.photo
-        },
-        {
-            text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
-        },
-    ])
-    sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessel }))
-}
-
-function vesselButtonList(chat_id: number, text: string, vessels: VesselsList) {
-    let array: any[] = []
-
-    vessels.forEach((element, i) => {
-        array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i })
-    });
-
-    sendMessage(chat_id, text, { inline_keyboard: buttonsGrid(array, 3) }).then(queryCreate.bind({ chat_id, data: vessels }))
-}
-
-function buttonsGrid(array: any[], maxColumn?: number) {
-    let keyboard: InlineKeyboardMarkup = []
-    for (let c = 0, i = 0; i < array.length; c++) {
-        keyboard.push([])
-        keyboard.forEach((el: any, index: number) => {
-            if (c != index) return
-            for (let j = 1; j <= maxColumn && i < array.length; j++ , i++) {
-                el.push(array[i])
+        inline_keyboard.push([
+            // {
+            //     text: `🔎 Search`, callback_data: CallbackQueryActions.search
+            // },  
+            {
+                text: `🚢 My fleet`, callback_data: CallbackQueryActions.favorites
+            }, {
+                text: `💬 Cotact us`, url: contactUsURL
             }
+        ])
+
+        sendMessage(this.chat_id, output, { inline_keyboard })
+    }
+
+    private vesselFoundList(vessels: VesselsList) {
+        let text = "Vessels not found"
+
+        if (vessels.length) {
+            vessels.length > 15 && (vessels.length = 15)
+            text = `Found vessels: ${vessels.length} 🔎🚢\nPlease select from the following 👇`;
+        }
+
+        this.vesselButtonList(text, vessels)
+    }
+
+    private favorites() {
+        return Favorite.findAll({ where: { user_id: this.chat_id } }).then((data: Array<any>) => {
+            this.vesselButtonList("🚢 My fleet", data)
         })
     }
-    return keyboard;
-}
 
-function queryCreate(message: any) {
-    let message_id = message.body.result.message_id
-    Query.create({
-        message_id,
-        chat_id: this.chat_id,
-        data: JSON.stringify(this.data),
-    })
-}
+    private async vesselInfo(vessel: Vessel) {
+        let output = "";
 
-function callbackQueryHandler(callback_query: Telegram.CallbackQuery) {
-    if (callback_query.message && callback_query.message.message_id) {
-        let chat_id = callback_query.from.id
-        let action = callback_query.data.split(":")
-        switch (action[0]) {
+        VesselPropertyArray.forEach((property, i) => {
+            if (!(i % 2)) return
+            else if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate)
+                vessel[property] = (new Date(vessel[property])).toLocaleString()
+            else if (vessel[property])
+                output += `${property}: ${[vessel[property]]}\n`
+        })
+
+        let inline_keyboard: InlineKeyboardMarkup = []
+
+        inline_keyboard.push([
+            {
+                text: `🧭 Location`, callback_data: CallbackQueryActions.location
+            },
+            {
+                text: `📷 Vessel photo`, callback_data: CallbackQueryActions.photo
+            },
+            {
+                text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
+            },
+        ])
+        let message = await sendMessage(this.chat_id, output, { inline_keyboard })
+        this.queryCreate(message, vessel)
+    }
+
+    private async vesselButtonList(text: string, vessels: VesselsList) {
+        let array: any[] = []
+
+        vessels.forEach((element, i) => {
+            array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: CallbackQueryActions.href + ":" + i })
+        });
+
+        let message = await sendMessage(this.chat_id, text, { inline_keyboard: this.buttonsGrid(array, 3) })
+        this.queryCreate(message, vessels)
+    }
+
+    buttonsGrid(array: any[], maxColumn?: number) {
+        let keyboard: InlineKeyboardMarkup = []
+        for (let c = 0, i = 0; i < array.length; c++) {
+            keyboard.push([])
+            keyboard.forEach((el: any, index: number) => {
+                if (c != index) return
+                for (let j = 1; j <= maxColumn && i < array.length; j++ , i++) {
+                    el.push(array[i])
+                }
+            })
+        }
+        return keyboard;
+    }
+
+    private queryCreate(message: any, data: any) {
+        let message_id = message.result.message_id
+        Query.create({
+            message_id,
+            chat_id: this.chat_id,
+            data: JSON.stringify(data),
+        }).catch(err => console.error(err))
+    }
+
+    private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any) {
+        switch (action) {
             case CallbackQueryActions.search:
                 answerCallbackQuery(callback_query.id)
                 break;
             case CallbackQueryActions.favorites:
-                favorites(chat_id)
-                answerCallbackQuery(callback_query.id)
+                this.favorites().finally(() => answerCallbackQuery(callback_query.id))
                 break;
-            default:
-                Query.findOne({
-                    where: {
-                        chat_id,
-                        message_id: callback_query.message.message_id
-                    }
-                }).then((query: any) => {
-                    if (!query) return;
-                    let data = JSON.parse(query.data)
-                    let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
-
-                    switch (action[0]) {
-                        case CallbackQueryActions.href:
-                            vesselAPI.getOne(href)
-                                .then((vessel: any) => vesselInfo(chat_id, vessel))
-                                .catch(() => sendMessage(chat_id, "Oops error happend, please try later"))
-                            break;
-                        case CallbackQueryActions.location:
-                            sendLocation(chat_id, data["Coordinates"])
-                            break;
-                        case CallbackQueryActions.photo:
-                            vesselAPI.imageFind(data[VesselProperty.MMSI]).then((imgSrc: string) => {
-                                sendPhoto(chat_id, imgSrc)
-                            }).catch(() => sendMessage(chat_id, "Sorry photo not available for this vessel"))
-                            break;
-                        case CallbackQueryActions.favoritesAdd:
-                            Favorite.create({
-                                user_id: chat_id,
-                                name: data[VesselProperty.name],
-                                country: data[VesselProperty.flag],
-                                href
-                            })
-                            break;
-                    }
-                    answerCallbackQuery(callback_query.id)
-                }).catch(() => sendMessage(chat_id, "Query result is too old, please submit new one"))
+            case CallbackQueryActions.href:
+                vesselAPI.getOne(href)
+                    .then((vessel: any) => this.vesselInfo(vessel))
+                    .catch(() => sendMessage(this.chat_id, "Oops error happend, please try later"))
+                    .finally(() => answerCallbackQuery(callback_query.id))
+                break;
+            case CallbackQueryActions.location:
+                sendLocation(this.chat_id, data["Coordinates"])
+                    .finally(() => answerCallbackQuery(callback_query.id))
+                break;
+            case CallbackQueryActions.photo:
+                vesselAPI.imageFind(data[VesselProperty.MMSI])
+                    .then((imgSrc: string) => sendPhoto(this.chat_id, imgSrc))
+                    .catch(() => sendMessage(this.chat_id, "Sorry, photo not available for this vessel"))
+                    .finally(() => answerCallbackQuery(callback_query.id))
+                break;
+            case CallbackQueryActions.favoritesAdd:
+                Favorite.create({
+                    user_id: this.chat_id,
+                    name: data[VesselProperty.name],
+                    country: data[VesselProperty.flag],
+                    href
+                }).finally(() => answerCallbackQuery(callback_query.id))
                 break;
         }
     }
