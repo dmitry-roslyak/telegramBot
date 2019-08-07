@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const telegram_1 = require("./telegram");
 const vesselsAPI_1 = require("./vesselsAPI");
@@ -10,163 +18,174 @@ function countryFlag(country) {
     return res && res.flag || "";
 }
 telegram_1.subscribe(function (messages) {
-    messages.forEach(element => {
-        console.log(element);
-        if (element.message && element.message.text === "test") {
-            telegram_1.sendMessage(element.message.from.id, "Its working");
-        }
-        else if (element.callback_query) {
-            callbackQueryHandler(element.callback_query);
-        }
-        else if (element.message && element.message.text === "/start") {
-            telegram_1.sendMessage(element.message.from.id, "Драсьте");
-        }
-        else if (element.message && element.message.text === "/menu") {
-            menu(element.message.from.id);
-        }
-        else if (element.message && element.message.text === "/fav") {
-            favorites(element.message.from.id);
-        }
-        else if (element.message && element.message.text && element.message.text.length > 2) {
-            vesselsAPI_1.default.find(encodeURI(element.message.text))
-                .then((vessels) => {
-                /\d{7}|\d{9}/.test(element.message.text) ?
-                    vesselInfo(element.message.from.id, vessels) :
-                    vesselFoundList(element.message.from.id, vessels);
-            })
-                .catch(() => telegram_1.sendMessage(element.message.from.id, "Oops error happend, please try later"));
-        }
-    });
+    messages.forEach(element => new UpdateHandler(element));
 });
-function menu(chat_id) {
-    let output = "Please select from the following options 👇";
-    let inline_keyboard = [];
-    inline_keyboard.push([
-        // {
-        //     text: `🔎 Search`, callback_data: CallbackQueryActions.search
-        // }, 
-        {
-            text: `🚢 My fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favorites //url: "tg://fav"
-        }, {
-            text: `💬 Cotact us`, url: telegram_1.contactUsURL
+class UpdateHandler {
+    constructor(element) {
+        if (element.message) {
+            this.chat_id = element.message.from.id;
+            this.messageHandler(element.message.text);
         }
-    ]);
-    telegram_1.sendMessage(chat_id, output, { inline_keyboard });
-}
-function vesselFoundList(chat_id, vessels) {
-    let text = "Vessels not found";
-    if (vessels.length) {
-        vessels.length > 15 && (vessels.length = 15);
-        text = `Found vessels: ${vessels.length} 🔎🚢\nPlease select from the following 👇`;
-    }
-    vesselButtonList(chat_id, text, vessels);
-}
-function favorites(chat_id) {
-    models_1.Favorite.findAll({ where: { user_id: chat_id } }).then((data) => {
-        vesselButtonList(chat_id, "🚢 My fleet", data);
-    });
-}
-function vesselInfo(chat_id, vessel) {
-    let output = "";
-    telegramBot_1_1.VesselPropertyArray.forEach((property, i) => {
-        if (!(i % 2))
-            return;
-        else if (property == telegramBot_1_1.VesselProperty.estimatedArrivalDate || property == telegramBot_1_1.VesselProperty.lastReportDate)
-            vessel[property] = (new Date(vessel[property])).toLocaleString();
-        else if (vessel[property])
-            output += `${property}: ${[vessel[property]]}\n`;
-    });
-    let inline_keyboard = [];
-    inline_keyboard.push([
-        {
-            text: `🧭 Location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
-        },
-        {
-            text: `📷 Vessel photo`, callback_data: telegramBot_1_1.CallbackQueryActions.photo
-        },
-        {
-            text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd
-        },
-    ]);
-    telegram_1.sendMessage(chat_id, output, { inline_keyboard }).then(queryCreate.bind({ chat_id, data: vessel }));
-}
-function vesselButtonList(chat_id, text, vessels) {
-    let array = [];
-    vessels.forEach((element, i) => {
-        array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_1_1.CallbackQueryActions.href + ":" + i });
-    });
-    telegram_1.sendMessage(chat_id, text, { inline_keyboard: buttonsGrid(array, 3) }).then(queryCreate.bind({ chat_id, data: vessels }));
-}
-function buttonsGrid(array, maxColumn) {
-    let keyboard = [];
-    for (let c = 0, i = 0; i < array.length; c++) {
-        keyboard.push([]);
-        keyboard.forEach((el, index) => {
-            if (c != index)
-                return;
-            for (let j = 1; j <= maxColumn && i < array.length; j++, i++) {
-                el.push(array[i]);
+        else if (element.callback_query && element.callback_query.message) {
+            this.chat_id = element.callback_query.from.id;
+            let action = element.callback_query.data.split(":");
+            if ([telegramBot_1_1.CallbackQueryActions.href, telegramBot_1_1.CallbackQueryActions.location, telegramBot_1_1.CallbackQueryActions.photo, telegramBot_1_1.CallbackQueryActions.favoritesAdd].includes(action[0])) {
+                models_1.Query.findOne({
+                    where: {
+                        chat_id: this.chat_id,
+                        message_id: element.callback_query.message.message_id
+                    }
+                }).then((query) => {
+                    if (!query)
+                        return Promise.reject("Query not found");
+                    let data = JSON.parse(query.data);
+                    let href = action.length == 2 ? data[action[1]]["href"] : data["href"];
+                    this.callbackQueryHandler(element.callback_query, action[0], href, data);
+                }).catch((err) => {
+                    // console.error(err);
+                    telegram_1.sendMessage(this.chat_id, "Query result is too old, please submit new one");
+                });
             }
+            else
+                this.callbackQueryHandler(element.callback_query, action[0]);
+        }
+    }
+    messageHandler(text) {
+        if (text === "/start") {
+            telegram_1.sendMessage(this.chat_id, "Драсьте");
+        }
+        else if (text === "/menu") {
+            this.menu();
+        }
+        else if (text === "/fav") {
+            this.favorites();
+        }
+        else if (text && text.length > 2) {
+            vesselsAPI_1.default.find(encodeURI(text))
+                .then((vessels) => {
+                /\d{7}|\d{9}/.test(text) ? this.vesselInfo(vessels) : this.vesselFoundList(vessels);
+            })
+                .catch(() => telegram_1.sendMessage(this.chat_id, "Oops error happend, please try later"));
+        }
+    }
+    menu() {
+        let output = "Please select from the following options 👇";
+        let inline_keyboard = [];
+        inline_keyboard.push([
+            // {
+            //     text: `🔎 Search`, callback_data: CallbackQueryActions.search
+            // },  
+            {
+                text: `🚢 My fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favorites
+            }, {
+                text: `💬 Cotact us`, url: telegram_1.contactUsURL
+            }
+        ]);
+        telegram_1.sendMessage(this.chat_id, output, { inline_keyboard });
+    }
+    vesselFoundList(vessels) {
+        let text = "Vessels not found";
+        if (vessels.length) {
+            vessels.length > 15 && (vessels.length = 15);
+            text = `Found vessels: ${vessels.length} 🔎🚢\nPlease select from the following 👇`;
+        }
+        this.vesselButtonList(text, vessels);
+    }
+    favorites() {
+        return models_1.Favorite.findAll({ where: { user_id: this.chat_id } }).then((data) => {
+            this.vesselButtonList("🚢 My fleet", data);
         });
     }
-    return keyboard;
-}
-function queryCreate(message) {
-    let message_id = message.body.result.message_id;
-    models_1.Query.create({
-        message_id,
-        chat_id: this.chat_id,
-        data: JSON.stringify(this.data),
-    });
-}
-function callbackQueryHandler(callback_query) {
-    if (callback_query.message && callback_query.message.message_id) {
-        let chat_id = callback_query.from.id;
-        let action = callback_query.data.split(":");
-        switch (action[0]) {
+    vesselInfo(vessel) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let output = "";
+            telegramBot_1_1.VesselPropertyArray.forEach((property, i) => {
+                if (!(i % 2))
+                    return;
+                else if (property == telegramBot_1_1.VesselProperty.estimatedArrivalDate || property == telegramBot_1_1.VesselProperty.lastReportDate)
+                    vessel[property] = (new Date(vessel[property])).toLocaleString();
+                else if (vessel[property])
+                    output += `${property}: ${[vessel[property]]}\n`;
+            });
+            let inline_keyboard = [];
+            inline_keyboard.push([
+                {
+                    text: `🧭 Location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
+                },
+                {
+                    text: `📷 Vessel photo`, callback_data: telegramBot_1_1.CallbackQueryActions.photo
+                },
+                {
+                    text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd
+                },
+            ]);
+            let message = yield telegram_1.sendMessage(this.chat_id, output, { inline_keyboard });
+            this.queryCreate(message, vessel);
+        });
+    }
+    vesselButtonList(text, vessels) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let array = [];
+            vessels.forEach((element, i) => {
+                array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_1_1.CallbackQueryActions.href + ":" + i });
+            });
+            let message = yield telegram_1.sendMessage(this.chat_id, text, { inline_keyboard: this.buttonsGrid(array, 3) });
+            this.queryCreate(message, vessels);
+        });
+    }
+    buttonsGrid(array, maxColumn) {
+        let keyboard = [];
+        for (let c = 0, i = 0; i < array.length; c++) {
+            keyboard.push([]);
+            keyboard.forEach((el, index) => {
+                if (c != index)
+                    return;
+                for (let j = 1; j <= maxColumn && i < array.length; j++, i++) {
+                    el.push(array[i]);
+                }
+            });
+        }
+        return keyboard;
+    }
+    queryCreate(message, data) {
+        let message_id = message.result.message_id;
+        models_1.Query.create({
+            message_id,
+            chat_id: this.chat_id,
+            data: JSON.stringify(data),
+        }).catch(err => console.error(err));
+    }
+    callbackQueryHandler(callback_query, action, href, data) {
+        switch (action) {
             case telegramBot_1_1.CallbackQueryActions.search:
                 telegram_1.answerCallbackQuery(callback_query.id);
                 break;
             case telegramBot_1_1.CallbackQueryActions.favorites:
-                favorites(chat_id);
-                telegram_1.answerCallbackQuery(callback_query.id);
+                this.favorites().finally(() => telegram_1.answerCallbackQuery(callback_query.id));
                 break;
-            default:
-                models_1.Query.findOne({
-                    where: {
-                        chat_id,
-                        message_id: callback_query.message.message_id
-                    }
-                }).then((query) => {
-                    if (!query)
-                        return;
-                    let data = JSON.parse(query.data);
-                    let href = action.length == 2 ? data[action[1]]["href"] : data["href"];
-                    switch (action[0]) {
-                        case telegramBot_1_1.CallbackQueryActions.href:
-                            vesselsAPI_1.default.getOne(href)
-                                .then((vessel) => vesselInfo(chat_id, vessel))
-                                .catch(() => telegram_1.sendMessage(chat_id, "Oops error happend, please try later"));
-                            break;
-                        case telegramBot_1_1.CallbackQueryActions.location:
-                            telegram_1.sendLocation(chat_id, data["Coordinates"]);
-                            break;
-                        case telegramBot_1_1.CallbackQueryActions.photo:
-                            vesselsAPI_1.default.imageFind(data[telegramBot_1_1.VesselProperty.MMSI]).then((imgSrc) => {
-                                telegram_1.sendPhoto(chat_id, imgSrc);
-                            }).catch(() => telegram_1.sendMessage(chat_id, "Sorry photo not available for this vessel"));
-                            break;
-                        case telegramBot_1_1.CallbackQueryActions.favoritesAdd:
-                            models_1.Favorite.create({
-                                user_id: chat_id,
-                                name: data[telegramBot_1_1.VesselProperty.name],
-                                country: data[telegramBot_1_1.VesselProperty.flag],
-                                href
-                            });
-                            break;
-                    }
-                    telegram_1.answerCallbackQuery(callback_query.id);
-                }).catch(() => telegram_1.sendMessage(chat_id, "Query result is too old, please submit new one"));
+            case telegramBot_1_1.CallbackQueryActions.href:
+                vesselsAPI_1.default.getOne(href)
+                    .then((vessel) => this.vesselInfo(vessel))
+                    .catch(() => telegram_1.sendMessage(this.chat_id, "Oops error happend, please try later"))
+                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                break;
+            case telegramBot_1_1.CallbackQueryActions.location:
+                telegram_1.sendLocation(this.chat_id, data["Coordinates"])
+                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                break;
+            case telegramBot_1_1.CallbackQueryActions.photo:
+                vesselsAPI_1.default.imageFind(data[telegramBot_1_1.VesselProperty.MMSI])
+                    .then((imgSrc) => telegram_1.sendPhoto(this.chat_id, imgSrc))
+                    .catch(() => telegram_1.sendMessage(this.chat_id, "Sorry, photo not available for this vessel"))
+                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                break;
+            case telegramBot_1_1.CallbackQueryActions.favoritesAdd:
+                models_1.Favorite.create({
+                    user_id: this.chat_id,
+                    name: data[telegramBot_1_1.VesselProperty.name],
+                    country: data[telegramBot_1_1.VesselProperty.flag],
+                    href
+                }).finally(() => telegram_1.answerCallbackQuery(callback_query.id));
                 break;
         }
     }

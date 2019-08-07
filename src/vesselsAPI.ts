@@ -1,4 +1,4 @@
-import * as req from "request";
+import * as req from "request-promise";
 
 const {
     vesselApi
@@ -9,41 +9,34 @@ const request = req.defaults({
     json: true
 })
 
-let requestHandler: req.RequestCallback = function (error, httpResponse, body) {
+let requestHandler = function (error: any, httpResponse?: any, body?: any) {
     if (error || (httpResponse && httpResponse.statusCode != 200)) {
         error && console.error(error)
         httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
-        this.reject(error || httpResponse)
-    } else this.resolve(body)
+    }
 }
 
 const vesselAPI = {
     getOne: function (vesselHref: string) {
-        return new Promise((resolve, reject) => {
-            request.get({
-                url: "/view",
-                qs: {
-                    vesselHref
-                }
-            }, requestHandler.bind({ resolve, reject }))
-        })
+        return request.get({
+            url: "/view",
+            qs: {
+                vesselHref
+            }
+        }).catch(requestHandler)
     },
     find: function (text: string) {
-        return new Promise((resolve, reject) => {
-            request.get({
-                url: "/search/" + text,
-            }, requestHandler.bind({ resolve, reject }))
-        })
+        return request.get({
+            url: "/search/" + text,
+        }).catch(requestHandler)
     },
     imageFind: function (mmsi: string | number) {
-        return new Promise((resolve, reject) => {
-            request.get({
-                url: "/imageFind/",
-                qs: {
-                    mmsi
-                }
-            }, requestHandler.bind({ resolve, reject }))
-        })
+        return request.get({
+            url: "/imageFind/",
+            qs: {
+                mmsi
+            }
+        }).catch(requestHandler)
     },
 }
 

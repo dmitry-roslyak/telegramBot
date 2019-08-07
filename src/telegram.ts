@@ -1,10 +1,9 @@
-import * as req from "request";
+import * as req from "request-promise"
 import { RequestCallback } from "request";
 import { Telegram } from "./telegram.1";
 import InlineKeyboardMarkup = Telegram.InlineKeyboardMarkup
 import ReplyKeyboardMarkup = Telegram.ReplyKeyboardMarkup
 
-const util = require('util');
 const {
     telegram
 } = require("../env.json");
@@ -28,12 +27,11 @@ interface SubscribeCallback {
 }
 
 function answerCallbackQuery(callback_query_id: string, text?: string, show_alert?: boolean, url?: string, cache_time?: number) {
-    request.get({
+    return request.get({
         url: "/answerCallbackQuery",
         qs: {
             callback_query_id
         }
-    }, function (error, httpResponse, body) {
     })
 }
 function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup) {
@@ -43,28 +41,17 @@ function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup)
         ...(reply_markup && { reply_markup: JSON.stringify(reply_markup) })
     }
 
-    const requestGet = util.promisify(request.get);
-
-    return requestGet({
+    return request.get({
         url: "/sendMessage",
         qs: message
     })
-    // request.get({
-    //     url: "/sendMessage",
-    //     qs: message
-    // }, function (error, httpResponse, body) {
-    //     // console.log(body)
-    // })
 }
 function sendLocation(chat_id: number, coordinates: any) {
     if (coordinates && !coordinates.latitude && !coordinates.longitude) {
-        console.log("coordinates not available")
-        return;
+        return Promise.reject("coordinates not available");
     }
 
-    const requestGet = util.promisify(request.get);
-
-    return requestGet({
+    return request.get({
         url: "/sendLocation",
         qs: {
             chat_id,
@@ -74,14 +61,12 @@ function sendLocation(chat_id: number, coordinates: any) {
     })
 }
 function sendPhoto(chat_id: number | string, photo: string) {
-    request.get({
+    return request.get({
         url: "/sendPhoto",
         qs: {
             chat_id,
             photo
         }
-    }, function (error, httpResponse, body) {
-        // console.log(body)
     })
 }
 function subscribe(callback: SubscribeCallback): void {
