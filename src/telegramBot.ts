@@ -3,6 +3,7 @@ import vesselAPI from "./vesselsAPI";
 import { Favorite, Query } from "./models";
 import { Telegram } from "./telegram.1";
 import { VesselsList, CallbackQueryActions, VesselPropertyArray, Vessel, VesselProperty, VesselMetricSystem } from "./telegramBot.1";
+import { Op } from "sequelize";
 
 const countries = require("../countries.json")
 
@@ -42,7 +43,7 @@ class UpdateHandler {
                     sendMessage(this.chat_id, "Query result is too old, please submit new one")
                 })
             } else
-                this.callbackQueryHandler(element.callback_query, action[0])
+                this.callbackQueryHandler(element.callback_query, action[0], action[1])
         }
     }
 
@@ -110,6 +111,7 @@ class UpdateHandler {
         })
 
         let inline_keyboard: InlineKeyboardMarkup = []
+        let favoriteVessel = await this.favoriteFindOne(vessel)
 
         inline_keyboard.push([
             {
@@ -118,9 +120,10 @@ class UpdateHandler {
             {
                 text: `📷 Vessel photo`, callback_data: CallbackQueryActions.photo
             },
-            {
-                text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd
-            },
+            favoriteVessel ?
+                { text: `❌ Remove vessel`, callback_data: CallbackQueryActions.favoritesRemove + ":" + favoriteVessel.id } :
+                { text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd }
+            ,
         ])
         let message = await sendMessage(this.chat_id, output, { inline_keyboard })
         this.queryCreate(message, vessel)
@@ -160,7 +163,16 @@ class UpdateHandler {
         }).catch(err => console.error(err))
     }
 
-    private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any) {
+    private async favoriteFindOne(data: Vessel) {
+        return Favorite.findOne({
+            where: {
+                [Op.and]: { user_id: this.chat_id },
+                [Op.or]: [{ href: data[VesselProperty.href] }, { mmsi: data[VesselProperty.MMSI] }, { name: data[VesselProperty.name], country: data[VesselProperty.flag] }],
+            }
+        })
+    }
+
+    private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any, payload?: string) {
         switch (action) {
             case CallbackQueryActions.search:
                 answerCallbackQuery(callback_query.id)
@@ -185,12 +197,17 @@ class UpdateHandler {
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.favoritesAdd:
-                Favorite.create({
+                this.favoriteFindOne(data).then(fav => fav || Favorite.create({
                     user_id: this.chat_id,
                     name: data[VesselProperty.name],
                     country: data[VesselProperty.flag],
                     href
                 }).finally(() => answerCallbackQuery(callback_query.id))
+                ).finally(() => answerCallbackQuery(callback_query.id))
+                break;
+            case CallbackQueryActions.favoritesRemove:
+                Favorite.findByPk(href).then(fav => fav && fav.destroy())
+                    .finally(() => answerCallbackQuery(callback_query.id))
                 break;
         }
     }

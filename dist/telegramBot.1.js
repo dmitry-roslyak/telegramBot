@@ -5,6 +5,7 @@ var CallbackQueryActions;
     CallbackQueryActions["href"] = "href";
     CallbackQueryActions["location"] = "location";
     CallbackQueryActions["favoritesAdd"] = "favoritesAdd";
+    CallbackQueryActions["favoritesRemove"] = "favoritesRemove";
     CallbackQueryActions["search"] = "search";
     CallbackQueryActions["contact"] = "contact";
     CallbackQueryActions["favorites"] = "favorites";

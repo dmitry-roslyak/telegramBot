@@ -16,6 +16,7 @@ Query.init({
 }, { sequelize: init_1.default });
 Favorite.init({
     user_id: { type: sequelize_1.DataTypes.INTEGER },
+    mmsi: { type: sequelize_1.DataTypes.INTEGER },
     name: { type: sequelize_1.DataTypes.STRING },
     country: sequelize_1.DataTypes.STRING,
     href: sequelize_1.DataTypes.STRING,

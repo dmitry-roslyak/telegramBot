@@ -12,6 +12,7 @@ export enum CallbackQueryActions {
     href = "href",
     location = "location",
     favoritesAdd = "favoritesAdd",
+    favoritesRemove = "favoritesRemove",
     search = "search",
     contact = "contact",
     favorites = "favorites",

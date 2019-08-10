@@ -12,6 +12,7 @@ const telegram_1 = require("./telegram");
 const vesselsAPI_1 = require("./vesselsAPI");
 const models_1 = require("./models");
 const telegramBot_1_1 = require("./telegramBot.1");
+const sequelize_1 = require("sequelize");
 const countries = require("../countries.json");
 function countryFlag(country) {
     let res = countries.find((el) => el.name.common == country || el.cca3 == country);
@@ -48,7 +49,7 @@ class UpdateHandler {
                 });
             }
             else
-                this.callbackQueryHandler(element.callback_query, action[0]);
+                this.callbackQueryHandler(element.callback_query, action[0], action[1]);
         }
     }
     messageHandler(text) {
@@ -109,6 +110,7 @@ class UpdateHandler {
                     output += `${property}: ${[vessel[property]]}\n`;
             });
             let inline_keyboard = [];
+            let favoriteVessel = yield this.favoriteFindOne(vessel);
             inline_keyboard.push([
                 {
                     text: `🧭 Location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
@@ -116,9 +118,9 @@ class UpdateHandler {
                 {
                     text: `📷 Vessel photo`, callback_data: telegramBot_1_1.CallbackQueryActions.photo
                 },
-                {
-                    text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd
-                },
+                favoriteVessel ?
+                    { text: `❌ Remove vessel`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesRemove + ":" + favoriteVessel.id } :
+                    { text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd },
             ]);
             let message = yield telegram_1.sendMessage(this.chat_id, output, { inline_keyboard });
             this.queryCreate(message, vessel);
@@ -156,7 +158,17 @@ class UpdateHandler {
             data: JSON.stringify(data),
         }).catch(err => console.error(err));
     }
-    callbackQueryHandler(callback_query, action, href, data) {
+    favoriteFindOne(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return models_1.Favorite.findOne({
+                where: {
+                    [sequelize_1.Op.and]: { user_id: this.chat_id },
+                    [sequelize_1.Op.or]: [{ href: data[telegramBot_1_1.VesselProperty.href] }, { mmsi: data[telegramBot_1_1.VesselProperty.MMSI] }, { name: data[telegramBot_1_1.VesselProperty.name], country: data[telegramBot_1_1.VesselProperty.flag] }],
+                }
+            });
+        });
+    }
+    callbackQueryHandler(callback_query, action, href, data, payload) {
         switch (action) {
             case telegramBot_1_1.CallbackQueryActions.search:
                 telegram_1.answerCallbackQuery(callback_query.id);
@@ -181,12 +193,16 @@ class UpdateHandler {
                     .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_1_1.CallbackQueryActions.favoritesAdd:
-                models_1.Favorite.create({
+                this.favoriteFindOne(data).then(fav => fav || models_1.Favorite.create({
                     user_id: this.chat_id,
                     name: data[telegramBot_1_1.VesselProperty.name],
                     country: data[telegramBot_1_1.VesselProperty.flag],
                     href
-                }).finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                }).finally(() => telegram_1.answerCallbackQuery(callback_query.id))).finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                break;
+            case telegramBot_1_1.CallbackQueryActions.favoritesRemove:
+                models_1.Favorite.findByPk(href).then(fav => fav && fav.destroy())
+                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
                 break;
         }
     }

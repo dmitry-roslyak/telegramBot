@@ -2,7 +2,9 @@ import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize';
 import sequelize from './init';
 
 class Query extends Model { }
-class Favorite extends Model { }
+class Favorite extends Model {
+    id: string
+}
 
 Query.init({
     chat_id: { type: DataTypes.INTEGER },
@@ -13,6 +15,7 @@ Query.init({
 
 Favorite.init({
     user_id: { type: DataTypes.INTEGER },
+    mmsi: { type: DataTypes.INTEGER },
     name: { type: DataTypes.STRING },
     country: DataTypes.STRING,
     href: DataTypes.STRING,
