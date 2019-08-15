@@ -14,7 +14,7 @@ function answerCallbackQuery(callback_query_id, text, show_alert, url, cache_tim
         qs: {
             callback_query_id
         }
-    });
+    }).catch(err => console.error(err));
 }
 exports.answerCallbackQuery = answerCallbackQuery;
 function sendMessage(chat_id, text, reply_markup) {
@@ -23,7 +23,7 @@ function sendMessage(chat_id, text, reply_markup) {
     return request.get({
         url: "/sendMessage",
         qs: message
-    });
+    }).catch(err => console.error(err));
 }
 exports.sendMessage = sendMessage;
 function sendLocation(chat_id, coordinates) {
@@ -37,7 +37,7 @@ function sendLocation(chat_id, coordinates) {
             latitude: coordinates.latitude,
             longitude: coordinates.longitude
         }
-    });
+    }).catch(err => console.error(err));
 }
 exports.sendLocation = sendLocation;
 function sendPhoto(chat_id, photo) {
@@ -47,7 +47,7 @@ function sendPhoto(chat_id, photo) {
             chat_id,
             photo
         }
-    });
+    }).catch(err => console.error(err));
 }
 exports.sendPhoto = sendPhoto;
 function subscribe(callback) {
@@ -56,7 +56,7 @@ function subscribe(callback) {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
             error && console.error(error);
             httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`);
-            setInterval(getUpdates, 120 * 1000);
+            // setInterval(getUpdates, 120 * 1000)
             return;
         }
         offset = data.result.length ? data.result[data.result.length - 1].update_id + 1 : null;

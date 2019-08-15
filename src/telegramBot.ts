@@ -169,7 +169,7 @@ class UpdateHandler {
                 [Op.and]: { user_id: this.chat_id },
                 [Op.or]: [{ href: data[VesselProperty.href] }, { mmsi: data[VesselProperty.MMSI] }, { name: data[VesselProperty.name], country: data[VesselProperty.flag] }],
             }
-        })
+        }).catch(err => console.error(err))
     }
 
     private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any, payload?: string) {
@@ -205,10 +205,12 @@ class UpdateHandler {
                         href
                     })
                 })
+                    .catch(err => console.error(err))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.favoritesRemove:
                 Favorite.findByPk(href).then(fav => fav && fav.destroy())
+                    .catch(err => console.error(err))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
         }

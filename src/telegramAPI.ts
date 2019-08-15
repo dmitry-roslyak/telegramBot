@@ -27,7 +27,7 @@ function answerCallbackQuery(callback_query_id: string, text?: string, show_aler
         qs: {
             callback_query_id
         }
-    })
+    }).catch(err => console.error(err))
 }
 function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup) {
     let message = {
@@ -39,7 +39,7 @@ function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup)
     return request.get({
         url: "/sendMessage",
         qs: message
-    })
+    }).catch(err => console.error(err))
 }
 function sendLocation(chat_id: number, coordinates: any) {
     if (coordinates && !coordinates.latitude && !coordinates.longitude) {
@@ -53,7 +53,7 @@ function sendLocation(chat_id: number, coordinates: any) {
             latitude: coordinates.latitude,
             longitude: coordinates.longitude
         }
-    })
+    }).catch(err => console.error(err))
 }
 function sendPhoto(chat_id: number | string, photo: string) {
     return request.get({
@@ -62,7 +62,7 @@ function sendPhoto(chat_id: number | string, photo: string) {
             chat_id,
             photo
         }
-    })
+    }).catch(err => console.error(err))
 }
 function subscribe(callback: SubscribeCallback): void {
     let offset: number = null;
@@ -71,7 +71,7 @@ function subscribe(callback: SubscribeCallback): void {
         if (error || (httpResponse && httpResponse.statusCode != 200)) {
             error && console.error(error)
             httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
-            setInterval(getUpdates, 120 * 1000)
+            // setInterval(getUpdates, 120 * 1000)
             return
         }
         offset = data.result.length ? data.result[data.result.length - 1].update_id + 1 : null

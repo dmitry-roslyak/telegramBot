@@ -164,7 +164,7 @@ class UpdateHandler {
                 [sequelize_1.Op.and]: { user_id: this.chat_id },
                 [sequelize_1.Op.or]: [{ href: data[telegramBot_t_1.VesselProperty.href] }, { mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { name: data[telegramBot_t_1.VesselProperty.name], country: data[telegramBot_t_1.VesselProperty.flag] }],
             }
-        });
+        }).catch(err => console.error(err));
     }
     callbackQueryHandler(callback_query, action, href, data, payload) {
         switch (action) {
@@ -199,10 +199,12 @@ class UpdateHandler {
                         href
                     });
                 })
+                    .catch(err => console.error(err))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesRemove:
                 models_1.Favorite.findByPk(href).then(fav => fav && fav.destroy())
+                    .catch(err => console.error(err))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
         }
