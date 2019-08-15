@@ -38,7 +38,7 @@ class UpdateHandler {
                     let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
                     this.callbackQueryHandler(element.callback_query, action[0], href, data)
                 }).catch((err) => {
-                    // console.error(err);
+                    console.error(err);
                     answerCallbackQuery(element.callback_query.id)
                     sendMessage(this.chat_id, "Query result is too old, please submit new one")
                 })
@@ -140,7 +140,7 @@ class UpdateHandler {
         this.queryCreate(message, vessels)
     }
 
-    buttonsGrid(array: any[], maxColumn?: number) {
+    private buttonsGrid(array: any[], maxColumn?: number) {
         let keyboard: InlineKeyboardMarkup = []
         for (let c = 0, i = 0; i < array.length; c++) {
             keyboard.push([])
@@ -163,7 +163,7 @@ class UpdateHandler {
         }).catch(err => console.error(err))
     }
 
-    private async favoriteFindOne(data: Vessel) {
+    private favoriteFindOne(data: Vessel) {
         return Favorite.findOne({
             where: {
                 [Op.and]: { user_id: this.chat_id },
@@ -197,13 +197,15 @@ class UpdateHandler {
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.favoritesAdd:
-                this.favoriteFindOne(data).then(fav => fav || Favorite.create({
-                    user_id: this.chat_id,
-                    name: data[VesselProperty.name],
-                    country: data[VesselProperty.flag],
-                    href
-                }).finally(() => answerCallbackQuery(callback_query.id))
-                ).finally(() => answerCallbackQuery(callback_query.id))
+                this.favoriteFindOne(data).then(fav => {
+                    fav || Favorite.create({
+                        user_id: this.chat_id,
+                        name: data[VesselProperty.name],
+                        country: data[VesselProperty.flag],
+                        href
+                    })
+                })
+                    .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.favoritesRemove:
                 Favorite.findByPk(href).then(fav => fav && fav.destroy())

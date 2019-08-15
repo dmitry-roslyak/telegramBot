@@ -43,7 +43,7 @@ class UpdateHandler {
                     let href = action.length == 2 ? data[action[1]]["href"] : data["href"];
                     this.callbackQueryHandler(element.callback_query, action[0], href, data);
                 }).catch((err) => {
-                    // console.error(err);
+                    console.error(err);
                     telegramAPI_1.answerCallbackQuery(element.callback_query.id);
                     telegramAPI_1.sendMessage(this.chat_id, "Query result is too old, please submit new one");
                 });
@@ -159,13 +159,11 @@ class UpdateHandler {
         }).catch(err => console.error(err));
     }
     favoriteFindOne(data) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return models_1.Favorite.findOne({
-                where: {
-                    [sequelize_1.Op.and]: { user_id: this.chat_id },
-                    [sequelize_1.Op.or]: [{ href: data[telegramBot_t_1.VesselProperty.href] }, { mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { name: data[telegramBot_t_1.VesselProperty.name], country: data[telegramBot_t_1.VesselProperty.flag] }],
-                }
-            });
+        return models_1.Favorite.findOne({
+            where: {
+                [sequelize_1.Op.and]: { user_id: this.chat_id },
+                [sequelize_1.Op.or]: [{ href: data[telegramBot_t_1.VesselProperty.href] }, { mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { name: data[telegramBot_t_1.VesselProperty.name], country: data[telegramBot_t_1.VesselProperty.flag] }],
+            }
         });
     }
     callbackQueryHandler(callback_query, action, href, data, payload) {
@@ -193,12 +191,15 @@ class UpdateHandler {
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesAdd:
-                this.favoriteFindOne(data).then(fav => fav || models_1.Favorite.create({
-                    user_id: this.chat_id,
-                    name: data[telegramBot_t_1.VesselProperty.name],
-                    country: data[telegramBot_t_1.VesselProperty.flag],
-                    href
-                }).finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id))).finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
+                this.favoriteFindOne(data).then(fav => {
+                    fav || models_1.Favorite.create({
+                        user_id: this.chat_id,
+                        name: data[telegramBot_t_1.VesselProperty.name],
+                        country: data[telegramBot_t_1.VesselProperty.flag],
+                        href
+                    });
+                })
+                    .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesRemove:
                 models_1.Favorite.findByPk(href).then(fav => fav && fav.destroy())
