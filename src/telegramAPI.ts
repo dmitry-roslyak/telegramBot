@@ -1,6 +1,6 @@
 import * as req from "request-promise"
 import { RequestCallback } from "request";
-import { Telegram } from "./telegram.1";
+import { Telegram } from "./telegramAPI.t";
 import InlineKeyboardMarkup = Telegram.InlineKeyboardMarkup
 import ReplyKeyboardMarkup = Telegram.ReplyKeyboardMarkup
 

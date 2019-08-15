@@ -77,4 +77,4 @@ function subscribe(callback) {
     }
 }
 exports.subscribe = subscribe;
-//# sourceMappingURL=telegram.js.map
+//# sourceMappingURL=telegramAPI.js.map

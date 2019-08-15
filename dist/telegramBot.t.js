@@ -61,4 +61,4 @@ exports.VesselPropertyArray = [
     "estimatedArrivalDate", VesselProperty.estimatedArrivalDate,
     "lastReportDate", VesselProperty.lastReportDate
 ];
-//# sourceMappingURL=telegramBot.1.js.map
+//# sourceMappingURL=telegramBot.t.js.map

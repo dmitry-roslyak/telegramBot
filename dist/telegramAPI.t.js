@@ -11,4 +11,4 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // interface SubscribeCallback {
 //     (updates: Array<Telegram.Update>): void
 // }
-//# sourceMappingURL=telegram.1.js.map
+//# sourceMappingURL=telegramAPI.t.js.map

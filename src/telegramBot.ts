@@ -1,8 +1,8 @@
-import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL, sendPhoto } from "./telegram";
+import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL, sendPhoto } from "./telegramAPI";
 import vesselAPI from "./vesselsAPI";
 import { Favorite, Query } from "./models";
-import { Telegram } from "./telegram.1";
-import { VesselsList, CallbackQueryActions, VesselPropertyArray, Vessel, VesselProperty, VesselMetricSystem } from "./telegramBot.1";
+import { Telegram } from "./telegramAPI.t";
+import { VesselsList, CallbackQueryActions, VesselPropertyArray, Vessel, VesselProperty, VesselMetricSystem } from "./telegramBot.t";
 import { Op } from "sequelize";
 
 const countries = require("../countries.json")

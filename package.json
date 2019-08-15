@@ -3,19 +3,15 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
+        "start": "cross-env NODE_ENV=production node ./bin/www",
         "prod": "tsc && cross-env NODE_ENV=production node ./bin/www",
         "watch": "tsc -w"
     },
     "dependencies": {
-        "cookie-parser": "~1.4.3",
         "cross-env": "^5.2.0",
         "debug": "~2.6.9",
-        "express": "~4.16.0",
-        "http-errors": "~1.6.2",
-        "morgan": "~1.9.0",
         "pg": "^7.11.0",
         "pg-hstore": "^2.3.3",
-        "pug": "2.0.0-beta11",
         "request": "^2.88.0",
         "request-promise": "^4.2.4",
         "sequelize": "^5.10.2"

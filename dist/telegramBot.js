@@ -8,17 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const telegram_1 = require("./telegram");
+const telegramAPI_1 = require("./telegramAPI");
 const vesselsAPI_1 = require("./vesselsAPI");
 const models_1 = require("./models");
-const telegramBot_1_1 = require("./telegramBot.1");
+const telegramBot_t_1 = require("./telegramBot.t");
 const sequelize_1 = require("sequelize");
 const countries = require("../countries.json");
 function countryFlag(country) {
     let res = countries.find((el) => el.name.common == country || el.cca3 == country);
     return res && res.flag || "";
 }
-telegram_1.subscribe(function (messages) {
+telegramAPI_1.subscribe(function (messages) {
     messages.forEach(element => new UpdateHandler(element));
 });
 class UpdateHandler {
@@ -30,7 +30,7 @@ class UpdateHandler {
         else if (element.callback_query && element.callback_query.message) {
             this.chat_id = element.callback_query.from.id;
             let action = element.callback_query.data.split(":");
-            if ([telegramBot_1_1.CallbackQueryActions.href, telegramBot_1_1.CallbackQueryActions.location, telegramBot_1_1.CallbackQueryActions.photo, telegramBot_1_1.CallbackQueryActions.favoritesAdd].includes(action[0])) {
+            if ([telegramBot_t_1.CallbackQueryActions.href, telegramBot_t_1.CallbackQueryActions.location, telegramBot_t_1.CallbackQueryActions.photo, telegramBot_t_1.CallbackQueryActions.favoritesAdd].includes(action[0])) {
                 models_1.Query.findOne({
                     where: {
                         chat_id: this.chat_id,
@@ -44,8 +44,8 @@ class UpdateHandler {
                     this.callbackQueryHandler(element.callback_query, action[0], href, data);
                 }).catch((err) => {
                     // console.error(err);
-                    telegram_1.answerCallbackQuery(element.callback_query.id);
-                    telegram_1.sendMessage(this.chat_id, "Query result is too old, please submit new one");
+                    telegramAPI_1.answerCallbackQuery(element.callback_query.id);
+                    telegramAPI_1.sendMessage(this.chat_id, "Query result is too old, please submit new one");
                 });
             }
             else
@@ -54,7 +54,7 @@ class UpdateHandler {
     }
     messageHandler(text) {
         if (text === "/start") {
-            telegram_1.sendMessage(this.chat_id, "Драсьте");
+            telegramAPI_1.sendMessage(this.chat_id, "Драсьте");
         }
         else if (text === "/menu") {
             this.menu();
@@ -67,7 +67,7 @@ class UpdateHandler {
                 .then((vessels) => {
                 /\d{7}|\d{9}/.test(text) ? this.vesselInfo(vessels) : this.vesselFoundList(vessels);
             })
-                .catch(() => telegram_1.sendMessage(this.chat_id, "Oops error happend, please try later"));
+                .catch(() => telegramAPI_1.sendMessage(this.chat_id, "Oops error happend, please try later"));
         }
     }
     menu() {
@@ -78,12 +78,12 @@ class UpdateHandler {
             //     text: `🔎 Search`, callback_data: CallbackQueryActions.search
             // },  
             {
-                text: `🚢 My fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favorites
+                text: `🚢 My fleet`, callback_data: telegramBot_t_1.CallbackQueryActions.favorites
             }, {
-                text: `💬 Cotact us`, url: telegram_1.contactUsURL
+                text: `💬 Cotact us`, url: telegramAPI_1.contactUsURL
             }
         ]);
-        telegram_1.sendMessage(this.chat_id, output, { inline_keyboard });
+        telegramAPI_1.sendMessage(this.chat_id, output, { inline_keyboard });
     }
     vesselFoundList(vessels) {
         let text = "Vessels not found";
@@ -101,10 +101,10 @@ class UpdateHandler {
     vesselInfo(vessel) {
         return __awaiter(this, void 0, void 0, function* () {
             let output = "";
-            telegramBot_1_1.VesselPropertyArray.forEach((property, i) => {
+            telegramBot_t_1.VesselPropertyArray.forEach((property, i) => {
                 if (!(i % 2))
                     return;
-                else if (property == telegramBot_1_1.VesselProperty.estimatedArrivalDate || property == telegramBot_1_1.VesselProperty.lastReportDate)
+                else if (property == telegramBot_t_1.VesselProperty.estimatedArrivalDate || property == telegramBot_t_1.VesselProperty.lastReportDate)
                     vessel[property] = (new Date(vessel[property])).toLocaleString();
                 else if (vessel[property])
                     output += `${property}: ${[vessel[property]]}\n`;
@@ -113,16 +113,16 @@ class UpdateHandler {
             let favoriteVessel = yield this.favoriteFindOne(vessel);
             inline_keyboard.push([
                 {
-                    text: `🧭 Location`, callback_data: telegramBot_1_1.CallbackQueryActions.location
+                    text: `🧭 Location`, callback_data: telegramBot_t_1.CallbackQueryActions.location
                 },
                 {
-                    text: `📷 Vessel photo`, callback_data: telegramBot_1_1.CallbackQueryActions.photo
+                    text: `📷 Vessel photo`, callback_data: telegramBot_t_1.CallbackQueryActions.photo
                 },
                 favoriteVessel ?
-                    { text: `❌ Remove vessel`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesRemove + ":" + favoriteVessel.id } :
-                    { text: `⭐ Add to my fleet`, callback_data: telegramBot_1_1.CallbackQueryActions.favoritesAdd },
+                    { text: `❌ Remove vessel`, callback_data: telegramBot_t_1.CallbackQueryActions.favoritesRemove + ":" + favoriteVessel.id } :
+                    { text: `⭐ Add to my fleet`, callback_data: telegramBot_t_1.CallbackQueryActions.favoritesAdd },
             ]);
-            let message = yield telegram_1.sendMessage(this.chat_id, output, { inline_keyboard });
+            let message = yield telegramAPI_1.sendMessage(this.chat_id, output, { inline_keyboard });
             this.queryCreate(message, vessel);
         });
     }
@@ -130,9 +130,9 @@ class UpdateHandler {
         return __awaiter(this, void 0, void 0, function* () {
             let array = [];
             vessels.forEach((element, i) => {
-                array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_1_1.CallbackQueryActions.href + ":" + i });
+                array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_t_1.CallbackQueryActions.href + ":" + i });
             });
-            let message = yield telegram_1.sendMessage(this.chat_id, text, { inline_keyboard: this.buttonsGrid(array, 3) });
+            let message = yield telegramAPI_1.sendMessage(this.chat_id, text, { inline_keyboard: this.buttonsGrid(array, 3) });
             this.queryCreate(message, vessels);
         });
     }
@@ -163,46 +163,46 @@ class UpdateHandler {
             return models_1.Favorite.findOne({
                 where: {
                     [sequelize_1.Op.and]: { user_id: this.chat_id },
-                    [sequelize_1.Op.or]: [{ href: data[telegramBot_1_1.VesselProperty.href] }, { mmsi: data[telegramBot_1_1.VesselProperty.MMSI] }, { name: data[telegramBot_1_1.VesselProperty.name], country: data[telegramBot_1_1.VesselProperty.flag] }],
+                    [sequelize_1.Op.or]: [{ href: data[telegramBot_t_1.VesselProperty.href] }, { mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { name: data[telegramBot_t_1.VesselProperty.name], country: data[telegramBot_t_1.VesselProperty.flag] }],
                 }
             });
         });
     }
     callbackQueryHandler(callback_query, action, href, data, payload) {
         switch (action) {
-            case telegramBot_1_1.CallbackQueryActions.search:
-                telegram_1.answerCallbackQuery(callback_query.id);
+            case telegramBot_t_1.CallbackQueryActions.search:
+                telegramAPI_1.answerCallbackQuery(callback_query.id);
                 break;
-            case telegramBot_1_1.CallbackQueryActions.favorites:
-                this.favorites().finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+            case telegramBot_t_1.CallbackQueryActions.favorites:
+                this.favorites().finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
-            case telegramBot_1_1.CallbackQueryActions.href:
+            case telegramBot_t_1.CallbackQueryActions.href:
                 vesselsAPI_1.default.getOne(href)
                     .then((vessel) => this.vesselInfo(vessel))
-                    .catch(() => telegram_1.sendMessage(this.chat_id, "Oops error happend, please try later"))
-                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                    .catch(() => telegramAPI_1.sendMessage(this.chat_id, "Oops error happend, please try later"))
+                    .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
-            case telegramBot_1_1.CallbackQueryActions.location:
-                telegram_1.sendLocation(this.chat_id, data["Coordinates"])
-                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+            case telegramBot_t_1.CallbackQueryActions.location:
+                telegramAPI_1.sendLocation(this.chat_id, data["Coordinates"])
+                    .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
-            case telegramBot_1_1.CallbackQueryActions.photo:
-                vesselsAPI_1.default.imageFind(data[telegramBot_1_1.VesselProperty.MMSI])
-                    .then((imgSrc) => telegram_1.sendPhoto(this.chat_id, imgSrc))
-                    .catch(() => telegram_1.sendMessage(this.chat_id, "Sorry, photo not available for this vessel"))
-                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+            case telegramBot_t_1.CallbackQueryActions.photo:
+                vesselsAPI_1.default.imageFind(data[telegramBot_t_1.VesselProperty.MMSI])
+                    .then((imgSrc) => telegramAPI_1.sendPhoto(this.chat_id, imgSrc))
+                    .catch(() => telegramAPI_1.sendMessage(this.chat_id, "Sorry, photo not available for this vessel"))
+                    .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
-            case telegramBot_1_1.CallbackQueryActions.favoritesAdd:
+            case telegramBot_t_1.CallbackQueryActions.favoritesAdd:
                 this.favoriteFindOne(data).then(fav => fav || models_1.Favorite.create({
                     user_id: this.chat_id,
-                    name: data[telegramBot_1_1.VesselProperty.name],
-                    country: data[telegramBot_1_1.VesselProperty.flag],
+                    name: data[telegramBot_t_1.VesselProperty.name],
+                    country: data[telegramBot_t_1.VesselProperty.flag],
                     href
-                }).finally(() => telegram_1.answerCallbackQuery(callback_query.id))).finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                }).finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id))).finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
-            case telegramBot_1_1.CallbackQueryActions.favoritesRemove:
+            case telegramBot_t_1.CallbackQueryActions.favoritesRemove:
                 models_1.Favorite.findByPk(href).then(fav => fav && fav.destroy())
-                    .finally(() => telegram_1.answerCallbackQuery(callback_query.id));
+                    .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
         }
     }

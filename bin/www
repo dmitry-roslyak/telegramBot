@@ -4,8 +4,7 @@
  * Module dependencies.
  */
 
-var app = require('../dist/app');
-// var app = require('../app');
+require("../dist/telegramBot")
 var debug = require('debug')('telegram-bot:server');
 var http = require('http');
 
@@ -14,13 +13,14 @@ var http = require('http');
  */
 
 var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+var server = http.createServer(function (request, response) {
+    response.end("It works!");
+})
 
 /**
  * Listen on provided port, on all network interfaces.
