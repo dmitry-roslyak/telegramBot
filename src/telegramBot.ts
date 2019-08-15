@@ -8,7 +8,7 @@ import { Op } from "sequelize";
 const countries = require("../countries.json")
 
 function countryFlag(country: string) {
-    let res = countries.find((el: any) => el.name.common == country || el.cca3 == country)
+    let res = countries.find((el: any) => el.common == country || el.cca3 == country)
     return res && res.flag || ""
 }
 

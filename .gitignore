@@ -1,4 +1,4 @@
 /node_modules
 env.json
 _all_countries.json
-countries.json
+*.backup

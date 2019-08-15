@@ -15,7 +15,7 @@ const telegramBot_t_1 = require("./telegramBot.t");
 const sequelize_1 = require("sequelize");
 const countries = require("../countries.json");
 function countryFlag(country) {
-    let res = countries.find((el) => el.name.common == country || el.cca3 == country);
+    let res = countries.find((el) => el.common == country || el.cca3 == country);
     return res && res.flag || "";
 }
 telegramAPI_1.subscribe(function (messages) {
