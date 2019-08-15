@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const req = require("request-promise");
-const { vesselApi } = require("../env.json");
 const request = req.defaults({
-    baseUrl: vesselApi,
+    baseUrl: process.env.vessel_API,
     json: true
 });
 let requestHandler = function (error, httpResponse, body) {

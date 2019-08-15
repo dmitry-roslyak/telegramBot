@@ -4,13 +4,8 @@ import { Telegram } from "./telegramAPI.t";
 import InlineKeyboardMarkup = Telegram.InlineKeyboardMarkup
 import ReplyKeyboardMarkup = Telegram.ReplyKeyboardMarkup
 
-const {
-    telegram
-} = require("../env.json");
-
-const telegramApi = telegram.apiUrl + telegram.apiKey + "/"
-
-const contactUsURL = telegram.contactURL
+const telegramApi = process.env.telegram_API_URL + process.env.telegram_API_Key + "/"
+const contactUsURL = process.env.telegram_Contact_URL
 
 const request = req.defaults({
     baseUrl: telegramApi,

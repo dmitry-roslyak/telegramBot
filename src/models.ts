@@ -1,5 +1,15 @@
 import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize';
-import sequelize from './init';
+
+const sequelizeDefaultOptions = {
+    "define": {
+        "underscored": true,
+        "timestamps": true
+    },
+    "logging": false
+}
+
+if (!process.env.DATABASE_URL) throw "DATABASE_URL is undefined";
+const sequelize = new Sequelize(process.env.DATABASE_URL, sequelizeDefaultOptions)
 
 class Query extends Model { }
 class Favorite extends Model {
@@ -23,5 +33,4 @@ Favorite.init({
 
 sequelize.sync()
 
-export { Query, Favorite }
-export default { Query, Favorite }
+export { Query, Favorite, sequelize }

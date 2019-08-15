@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
-require("../dist/telegramBot")
+require("../dist/app")
 var debug = require('debug')('telegram-bot:server');
 var http = require('http');
 

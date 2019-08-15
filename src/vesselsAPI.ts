@@ -1,11 +1,7 @@
 import * as req from "request-promise";
 
-const {
-    vesselApi
-} = require("../env.json");
-
 const request = req.defaults({
-    baseUrl: vesselApi,
+    baseUrl: process.env.vessel_API,
     json: true
 })
 
