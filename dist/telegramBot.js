@@ -181,7 +181,9 @@ class UpdateHandler {
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.location:
-                telegramAPI_1.sendLocation(this.chat_id, data["Coordinates"])
+                vesselsAPI_1.default.getOne(href)
+                    .then((vessel) => telegramAPI_1.sendLocation(this.chat_id, vessel["Coordinates"]))
+                    .catch(() => telegramAPI_1.sendMessage(this.chat_id, "Oops error happend, please try later"))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.photo:

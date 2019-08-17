@@ -187,7 +187,9 @@ class UpdateHandler {
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.location:
-                sendLocation(this.chat_id, data["Coordinates"])
+                vesselAPI.getOne(href)
+                    .then((vessel: any) => sendLocation(this.chat_id, vessel["Coordinates"]))
+                    .catch(() => sendMessage(this.chat_id, "Oops error happend, please try later"))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.photo:
