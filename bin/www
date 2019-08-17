@@ -19,6 +19,8 @@ var port = normalizePort(process.env.PORT || '3000');
  */
 
 var server = http.createServer(function (request, response) {
+    response.statusCode = 301;
+    process.env.tg_bot_link && response.setHeader("Location", process.env.tg_bot_link);
     response.end("It works!");
 })
 
