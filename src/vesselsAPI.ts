@@ -5,34 +5,33 @@ const request = req.defaults({
     json: true
 })
 
-let requestHandler = function (error: any, httpResponse?: any, body?: any) {
-    if (error || (httpResponse && httpResponse.statusCode != 200)) {
-        error && console.error(error)
-        httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`)
-    }
-}
-
 const vesselAPI = {
     getOne: function (vesselHref: string) {
-        return request.get({
+        let pr = request.get({
             url: "/view",
             qs: {
                 vesselHref
             }
-        }).catch(requestHandler)
+        })
+        pr.catch(err => console.error(err))
+        return pr
     },
     find: function (text: string) {
-        return request.get({
+        let pr = request.get({
             url: "/search/" + text,
-        }).catch(requestHandler)
+        })
+        pr.catch(err => console.error(err))
+        return pr
     },
     imageFind: function (mmsi: string | number) {
-        return request.get({
+        let pr = request.get({
             url: "/imageFind/",
             qs: {
                 mmsi
             }
-        }).catch(requestHandler)
+        })
+        pr.catch(err => console.error(err))
+        return pr
     },
 }
 

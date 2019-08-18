@@ -6,6 +6,7 @@ if (process.env.NODE_ENV != "production") {
     process.env.telegram_API_Key = telegram.apiKey;
     process.env.telegram_Contact_URL = telegram.contactURL;
     process.env.vessel_API = vesselApi;
+    process.env.tg_bot_link = telegram.tg_bot_link;
 }
 if (typeof Promise.prototype.finally !== "function")
     Promise.prototype.finally = function (cb) {
