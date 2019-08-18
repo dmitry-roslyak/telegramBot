@@ -1,10 +1,10 @@
 import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL, sendPhoto } from "./telegramAPI";
 import vesselAPI from "./vesselsAPI";
-import { Favorite, Query } from "./models";
 import { Telegram } from "./telegramAPI.t";
 import { VesselsList, CallbackQueryActions, VesselPropertyArray, Vessel, VesselProperty, VesselMetricSystem } from "./telegramBot.t";
-import { Op } from "sequelize";
+import { DB } from "./db";
 
+const answerCallbackActions = [CallbackQueryActions.href, CallbackQueryActions.location, CallbackQueryActions.photo, CallbackQueryActions.favoritesAdd, CallbackQueryActions.favoritesRemove] as string[]
 const countries = require("../countries.json")
 
 function countryFlag(country: string) {
@@ -17,7 +17,17 @@ subscribe(function (messages) {
 })
 
 class UpdateHandler {
-    chat_id: number
+    private _chat_id: number
+    private db: DB
+
+    public get chat_id(): number {
+        return this._chat_id
+    }
+
+    public set chat_id(chat_id: number) {
+        this._chat_id = chat_id;
+        this.db = new DB(chat_id)
+    }
 
     constructor(element: Telegram.Update) {
         if (element.message) {
@@ -26,13 +36,8 @@ class UpdateHandler {
         } else if (element.callback_query && element.callback_query.message) {
             this.chat_id = element.callback_query.from.id
             let action = element.callback_query.data.split(":")
-            if (([CallbackQueryActions.href, CallbackQueryActions.location, CallbackQueryActions.photo, CallbackQueryActions.favoritesAdd] as string[]).includes(action[0])) {
-                Query.findOne({
-                    where: {
-                        chat_id: this.chat_id,
-                        message_id: element.callback_query.message.message_id
-                    }
-                }).then((query: any) => {
+            if (answerCallbackActions.includes(action[0])) {
+                this.db.queryfindOne(element.callback_query.message.message_id).then((query: any) => {
                     if (!query) return Promise.reject("Query not found")
                     let data = JSON.parse(query.data)
                     let href = action.length == 2 ? data[action[1]]["href"] : data["href"]
@@ -43,7 +48,7 @@ class UpdateHandler {
                     sendMessage(this.chat_id, "Query result is too old, please submit new one")
                 })
             } else
-                this.callbackQueryHandler(element.callback_query, action[0], action[1])
+                this.callbackQueryHandler(element.callback_query, action[0])
         }
     }
 
@@ -53,7 +58,11 @@ class UpdateHandler {
         } else if (text === "/menu") {
             this.menu()
         } else if (text === "/fav") {
-            this.favorites()
+            this.db.favorites()
+                .then((data: Array<any>) => {
+                    this.vesselButtonList("🚢 My fleet", data)
+                })
+                .catch(err => console.error(err))
         } else if (text && text.length > 2) {
             vesselAPI.find(encodeURI(text))
                 .then((vessels: any) => {
@@ -93,12 +102,6 @@ class UpdateHandler {
         this.vesselButtonList(text, vessels)
     }
 
-    private favorites() {
-        return Favorite.findAll({ where: { user_id: this.chat_id } }).then((data: Array<any>) => {
-            this.vesselButtonList("🚢 My fleet", data)
-        })
-    }
-
     private async vesselInfo(vessel: Vessel) {
         let output = "";
 
@@ -111,7 +114,8 @@ class UpdateHandler {
         })
 
         let inline_keyboard: InlineKeyboardMarkup = []
-        let favoriteVessel = await this.favoriteFindOne(vessel)
+        let favoriteVessel = await this.db.favoriteFindOne(vessel)
+            .catch(err => console.error(err))
 
         inline_keyboard.push([
             {
@@ -121,12 +125,13 @@ class UpdateHandler {
                 text: `📷 Vessel photo`, callback_data: CallbackQueryActions.photo
             },
             favoriteVessel ?
-                { text: `❌ Remove vessel`, callback_data: CallbackQueryActions.favoritesRemove + ":" + favoriteVessel.id } :
+                { text: `❌ Remove vessel`, callback_data: CallbackQueryActions.favoritesRemove } :
                 { text: `⭐ Add to my fleet`, callback_data: CallbackQueryActions.favoritesAdd }
             ,
         ])
         let message = await sendMessage(this.chat_id, output, { inline_keyboard })
-        this.queryCreate(message, vessel)
+        this.db.queryCreate(message, vessel)
+            .catch(err => console.error(err))
     }
 
     private async vesselButtonList(text: string, vessels: VesselsList) {
@@ -137,7 +142,8 @@ class UpdateHandler {
         });
 
         let message = await sendMessage(this.chat_id, text, { inline_keyboard: this.buttonsGrid(array, 3) })
-        this.queryCreate(message, vessels)
+        this.db.queryCreate(message, vessels)
+            .catch(err => console.error(err))
     }
 
     private buttonsGrid(array: any[], maxColumn?: number) {
@@ -154,31 +160,15 @@ class UpdateHandler {
         return keyboard;
     }
 
-    private queryCreate(message: any, data: any) {
-        let message_id = message.result.message_id
-        Query.create({
-            message_id,
-            chat_id: this.chat_id,
-            data: JSON.stringify(data),
-        }).catch(err => console.error(err))
-    }
-
-    private favoriteFindOne(data: Vessel) {
-        return Favorite.findOne({
-            where: {
-                [Op.and]: { user_id: this.chat_id },
-                [Op.or]: [{ href: data[VesselProperty.href] }, { mmsi: data[VesselProperty.MMSI] }, { name: data[VesselProperty.name], country: data[VesselProperty.flag] }],
-            }
-        }).catch(err => console.error(err))
-    }
-
     private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any, payload?: string) {
         switch (action) {
             case CallbackQueryActions.search:
                 answerCallbackQuery(callback_query.id)
                 break;
             case CallbackQueryActions.favorites:
-                this.favorites().finally(() => answerCallbackQuery(callback_query.id))
+                this.db.favorites()
+                    .catch(() => sendMessage(this.chat_id, "Oops error happend, please try later"))
+                    .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.href:
                 vesselAPI.getOne(href)
@@ -199,19 +189,12 @@ class UpdateHandler {
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.favoritesAdd:
-                this.favoriteFindOne(data).then(fav => {
-                    fav || Favorite.create({
-                        user_id: this.chat_id,
-                        name: data[VesselProperty.name],
-                        country: data[VesselProperty.flag],
-                        href
-                    })
-                })
+                this.db.favoriteFindOneOrCreate(data, href)
                     .catch(err => console.error(err))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
             case CallbackQueryActions.favoritesRemove:
-                Favorite.findByPk(href).then(fav => fav && fav.destroy())
+                this.db.favoriteRemove(href)
                     .catch(err => console.error(err))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;

@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const telegramAPI_1 = require("./telegramAPI");
 const vesselsAPI_1 = require("./vesselsAPI");
-const models_1 = require("./models");
 const telegramBot_t_1 = require("./telegramBot.t");
-const sequelize_1 = require("sequelize");
+const db_1 = require("./db");
+const answerCallbackActions = [telegramBot_t_1.CallbackQueryActions.href, telegramBot_t_1.CallbackQueryActions.location, telegramBot_t_1.CallbackQueryActions.photo, telegramBot_t_1.CallbackQueryActions.favoritesAdd, telegramBot_t_1.CallbackQueryActions.favoritesRemove];
 const countries = require("../countries.json");
 function countryFlag(country) {
     let res = countries.find((el) => el.common == country || el.cca3 == country);
@@ -22,6 +22,13 @@ telegramAPI_1.subscribe(function (messages) {
     messages.forEach(element => new UpdateHandler(element));
 });
 class UpdateHandler {
+    get chat_id() {
+        return this._chat_id;
+    }
+    set chat_id(chat_id) {
+        this._chat_id = chat_id;
+        this.db = new db_1.DB(chat_id);
+    }
     constructor(element) {
         if (element.message) {
             this.chat_id = element.message.from.id;
@@ -30,13 +37,8 @@ class UpdateHandler {
         else if (element.callback_query && element.callback_query.message) {
             this.chat_id = element.callback_query.from.id;
             let action = element.callback_query.data.split(":");
-            if ([telegramBot_t_1.CallbackQueryActions.href, telegramBot_t_1.CallbackQueryActions.location, telegramBot_t_1.CallbackQueryActions.photo, telegramBot_t_1.CallbackQueryActions.favoritesAdd].includes(action[0])) {
-                models_1.Query.findOne({
-                    where: {
-                        chat_id: this.chat_id,
-                        message_id: element.callback_query.message.message_id
-                    }
-                }).then((query) => {
+            if (answerCallbackActions.includes(action[0])) {
+                this.db.queryfindOne(element.callback_query.message.message_id).then((query) => {
                     if (!query)
                         return Promise.reject("Query not found");
                     let data = JSON.parse(query.data);
@@ -49,7 +51,7 @@ class UpdateHandler {
                 });
             }
             else
-                this.callbackQueryHandler(element.callback_query, action[0], action[1]);
+                this.callbackQueryHandler(element.callback_query, action[0]);
         }
     }
     messageHandler(text) {
@@ -60,7 +62,11 @@ class UpdateHandler {
             this.menu();
         }
         else if (text === "/fav") {
-            this.favorites();
+            this.db.favorites()
+                .then((data) => {
+                this.vesselButtonList("🚢 My fleet", data);
+            })
+                .catch(err => console.error(err));
         }
         else if (text && text.length > 2) {
             vesselsAPI_1.default.find(encodeURI(text))
@@ -93,11 +99,6 @@ class UpdateHandler {
         }
         this.vesselButtonList(text, vessels);
     }
-    favorites() {
-        return models_1.Favorite.findAll({ where: { user_id: this.chat_id } }).then((data) => {
-            this.vesselButtonList("🚢 My fleet", data);
-        });
-    }
     vesselInfo(vessel) {
         return __awaiter(this, void 0, void 0, function* () {
             let output = "";
@@ -110,7 +111,8 @@ class UpdateHandler {
                     output += `${property}: ${[vessel[property]]}\n`;
             });
             let inline_keyboard = [];
-            let favoriteVessel = yield this.favoriteFindOne(vessel);
+            let favoriteVessel = yield this.db.favoriteFindOne(vessel)
+                .catch(err => console.error(err));
             inline_keyboard.push([
                 {
                     text: `🧭 Location`, callback_data: telegramBot_t_1.CallbackQueryActions.location
@@ -119,11 +121,12 @@ class UpdateHandler {
                     text: `📷 Vessel photo`, callback_data: telegramBot_t_1.CallbackQueryActions.photo
                 },
                 favoriteVessel ?
-                    { text: `❌ Remove vessel`, callback_data: telegramBot_t_1.CallbackQueryActions.favoritesRemove + ":" + favoriteVessel.id } :
+                    { text: `❌ Remove vessel`, callback_data: telegramBot_t_1.CallbackQueryActions.favoritesRemove } :
                     { text: `⭐ Add to my fleet`, callback_data: telegramBot_t_1.CallbackQueryActions.favoritesAdd },
             ]);
             let message = yield telegramAPI_1.sendMessage(this.chat_id, output, { inline_keyboard });
-            this.queryCreate(message, vessel);
+            this.db.queryCreate(message, vessel)
+                .catch(err => console.error(err));
         });
     }
     vesselButtonList(text, vessels) {
@@ -133,7 +136,8 @@ class UpdateHandler {
                 array.push({ text: `${countryFlag(element.country)} ${element.name}`, callback_data: telegramBot_t_1.CallbackQueryActions.href + ":" + i });
             });
             let message = yield telegramAPI_1.sendMessage(this.chat_id, text, { inline_keyboard: this.buttonsGrid(array, 3) });
-            this.queryCreate(message, vessels);
+            this.db.queryCreate(message, vessels)
+                .catch(err => console.error(err));
         });
     }
     buttonsGrid(array, maxColumn) {
@@ -150,29 +154,15 @@ class UpdateHandler {
         }
         return keyboard;
     }
-    queryCreate(message, data) {
-        let message_id = message.result.message_id;
-        models_1.Query.create({
-            message_id,
-            chat_id: this.chat_id,
-            data: JSON.stringify(data),
-        }).catch(err => console.error(err));
-    }
-    favoriteFindOne(data) {
-        return models_1.Favorite.findOne({
-            where: {
-                [sequelize_1.Op.and]: { user_id: this.chat_id },
-                [sequelize_1.Op.or]: [{ href: data[telegramBot_t_1.VesselProperty.href] }, { mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { name: data[telegramBot_t_1.VesselProperty.name], country: data[telegramBot_t_1.VesselProperty.flag] }],
-            }
-        }).catch(err => console.error(err));
-    }
     callbackQueryHandler(callback_query, action, href, data, payload) {
         switch (action) {
             case telegramBot_t_1.CallbackQueryActions.search:
                 telegramAPI_1.answerCallbackQuery(callback_query.id);
                 break;
             case telegramBot_t_1.CallbackQueryActions.favorites:
-                this.favorites().finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
+                this.db.favorites()
+                    .catch(() => telegramAPI_1.sendMessage(this.chat_id, "Oops error happend, please try later"))
+                    .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.href:
                 vesselsAPI_1.default.getOne(href)
@@ -193,19 +183,12 @@ class UpdateHandler {
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesAdd:
-                this.favoriteFindOne(data).then(fav => {
-                    fav || models_1.Favorite.create({
-                        user_id: this.chat_id,
-                        name: data[telegramBot_t_1.VesselProperty.name],
-                        country: data[telegramBot_t_1.VesselProperty.flag],
-                        href
-                    });
-                })
+                this.db.favoriteFindOneOrCreate(data, href)
                     .catch(err => console.error(err))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesRemove:
-                models_1.Favorite.findByPk(href).then(fav => fav && fav.destroy())
+                this.db.favoriteRemove(href)
                     .catch(err => console.error(err))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;
