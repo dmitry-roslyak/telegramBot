@@ -7,5 +7,9 @@ if (process.env.NODE_ENV != "production") {
     process.env.telegram_Contact_URL = telegram.contactURL;
     process.env.vessel_API = vesselApi;
 }
+if (typeof Promise.prototype.finally !== "function")
+    Promise.prototype.finally = function (cb) {
+        return Promise.race([this]).then(() => cb());
+    };
 require("./telegramBot");
 //# sourceMappingURL=app.js.map
