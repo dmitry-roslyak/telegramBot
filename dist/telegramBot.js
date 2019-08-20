@@ -14,6 +14,12 @@ const telegramBot_t_1 = require("./telegramBot.t");
 const db_1 = require("./db");
 const answerCallbackActions = [telegramBot_t_1.CallbackQueryActions.href, telegramBot_t_1.CallbackQueryActions.location, telegramBot_t_1.CallbackQueryActions.photo, telegramBot_t_1.CallbackQueryActions.favoritesAdd, telegramBot_t_1.CallbackQueryActions.favoritesRemove];
 const countries = require("../countries.json");
+const botName = process.env.tg_bot_link.match(/(?<=t.me\/)[^]+/);
+const msg = `, welcome to ${botName ? botName[0] : ""}!\n Here is my abilities:
+* Find vessels by name, mmsi/imo.
+* Show vessel latest info, location or view a photo.
+* Add vessels to your fleet. /fav to see fleet list.
+Send any message to start searching  🔎`;
 function countryFlag(country) {
     let res = countries.find((el) => el.common == country || el.cca3 == country);
     return res && res.flag || "";
@@ -25,17 +31,18 @@ class UpdateHandler {
     get chat_id() {
         return this._chat_id;
     }
-    set chat_id(chat_id) {
-        this._chat_id = chat_id;
-        this.db = new db_1.DB(chat_id);
+    set user(user) {
+        this._user = user;
+        this._chat_id = user.id;
+        this.db = new db_1.DB(user.id);
     }
     constructor(element) {
         if (element.message) {
-            this.chat_id = element.message.from.id;
+            this.user = element.message.from;
             this.messageHandler(element.message.text);
         }
         else if (element.callback_query && element.callback_query.message) {
-            this.chat_id = element.callback_query.from.id;
+            this.user = element.callback_query.from;
             let action = element.callback_query.data.split(":");
             if (answerCallbackActions.includes(action[0])) {
                 this.db.queryfindOne(element.callback_query.message.message_id).then((query) => {
@@ -56,7 +63,7 @@ class UpdateHandler {
     }
     messageHandler(text) {
         if (text === "/start") {
-            telegramAPI_1.sendMessage(this.chat_id, "Драсьте");
+            telegramAPI_1.sendMessage(this.chat_id, `👋 Hello ${this._user.first_name} ${this._user.last_name}${msg}`);
         }
         else if (text === "/menu") {
             this.menu();

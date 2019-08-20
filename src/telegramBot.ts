@@ -6,6 +6,12 @@ import { DB } from "./db";
 
 const answerCallbackActions = [CallbackQueryActions.href, CallbackQueryActions.location, CallbackQueryActions.photo, CallbackQueryActions.favoritesAdd, CallbackQueryActions.favoritesRemove] as string[]
 const countries = require("../countries.json")
+const botName = process.env.tg_bot_link.match(/(?<=t.me\/)[^]+/)
+const msg = `, welcome to ${botName ? botName[0] : ""}!\n Here is my abilities:
+* Find vessels by name, mmsi/imo.
+* Show vessel latest info, location or view a photo.
+* Add vessels to your fleet. /fav to see fleet list.
+Send any message to start searching  🔎`
 
 function countryFlag(country: string) {
     let res = countries.find((el: any) => el.common == country || el.cca3 == country)
@@ -19,22 +25,24 @@ subscribe(function (messages) {
 class UpdateHandler {
     private _chat_id: number
     private db: DB
+    private _user: Telegram.User
 
     public get chat_id(): number {
         return this._chat_id
     }
 
-    public set chat_id(chat_id: number) {
-        this._chat_id = chat_id;
-        this.db = new DB(chat_id)
+    public set user(user: Telegram.User) {
+        this._user = user
+        this._chat_id = user.id;
+        this.db = new DB(user.id)
     }
 
     constructor(element: Telegram.Update) {
         if (element.message) {
-            this.chat_id = element.message.from.id
+            this.user = element.message.from
             this.messageHandler(element.message.text);
         } else if (element.callback_query && element.callback_query.message) {
-            this.chat_id = element.callback_query.from.id
+            this.user = element.callback_query.from
             let action = element.callback_query.data.split(":")
             if (answerCallbackActions.includes(action[0])) {
                 this.db.queryfindOne(element.callback_query.message.message_id).then((query: any) => {
@@ -54,7 +62,7 @@ class UpdateHandler {
 
     private messageHandler(text: string) {
         if (text === "/start") {
-            sendMessage(this.chat_id, "Драсьте")
+            sendMessage(this.chat_id, `👋 Hello ${this._user.first_name} ${this._user.last_name}${msg}`)
         } else if (text === "/menu") {
             this.menu()
         } else if (text === "/fav") {
