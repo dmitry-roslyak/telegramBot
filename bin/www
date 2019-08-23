@@ -3,6 +3,7 @@
 /**
  * Module dependencies.
  */
+const req = require("request");
 
 require("../dist/app")
 var debug = require('debug')('telegram-bot:server');
@@ -20,6 +21,7 @@ var port = normalizePort(process.env.PORT || '3000');
 
 var server = http.createServer(function (request, response) {
     response.statusCode = 307;
+    process.env.NODE_ENV === "production" && req.head(process.env.vessel_API)
     process.env.tg_bot_link && response.setHeader("Location", process.env.tg_bot_link);
     response.end("It works!");
 })
