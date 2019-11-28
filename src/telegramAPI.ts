@@ -1,8 +1,5 @@
 import * as req from "request-promise"
 import { RequestCallback } from "request";
-import { Telegram } from "./telegramAPI.t";
-import InlineKeyboardMarkup = Telegram.InlineKeyboardMarkup
-import ReplyKeyboardMarkup = Telegram.ReplyKeyboardMarkup
 
 const telegramApi = process.env.telegram_API_URL + process.env.telegram_API_Key + "/"
 const contactUsURL = process.env.telegram_Contact_URL
@@ -12,15 +9,6 @@ const request = req.defaults({
     json: true
 })
 
-interface reply_markup {
-    inline_keyboard?: Telegram.InlineKeyboardMarkup
-    keyboard?: Telegram.ReplyKeyboardMarkup
-}
-
-interface SubscribeCallback {
-    (updates: Array<Telegram.Update>): void
-}
-
 function answerCallbackQuery(callback_query_id: string, text?: string, show_alert?: boolean, url?: string, cache_time?: number) {
     return request.get({
         url: "/answerCallbackQuery",
@@ -29,7 +17,7 @@ function answerCallbackQuery(callback_query_id: string, text?: string, show_aler
         }
     }).catch(err => console.error(err))
 }
-function sendMessage(chat_id: number, text: string, reply_markup?: reply_markup) {
+function sendMessage(chat_id: number, text: string, reply_markup?: Telegram.reply_markup) {
     let message = {
         chat_id,
         text,
@@ -64,7 +52,7 @@ function sendPhoto(chat_id: number | string, photo: string) {
         }
     }).catch(err => console.error(err))
 }
-function subscribe(callback: SubscribeCallback): void {
+function subscribe(callback: Telegram.SubscribeCallback): void {
     let offset: number = null;
 
     let func: RequestCallback = function (error, httpResponse, data: { ok: boolean, result: Array<Telegram.Update> }) {
@@ -93,4 +81,4 @@ function subscribe(callback: SubscribeCallback): void {
     }
 }
 
-export { sendMessage, sendLocation, sendPhoto, subscribe, answerCallbackQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL }
+export { sendMessage, sendLocation, sendPhoto, subscribe, answerCallbackQuery, contactUsURL }

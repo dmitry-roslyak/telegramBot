@@ -1,6 +1,5 @@
-import { sendLocation, sendMessage, answerCallbackQuery, subscribe, InlineKeyboardMarkup, ReplyKeyboardMarkup, contactUsURL, sendPhoto } from "./telegramAPI";
+import { sendLocation, sendMessage, answerCallbackQuery, subscribe, contactUsURL, sendPhoto } from "./telegramAPI";
 import vesselAPI from "./vesselsAPI";
-import { Telegram } from "./telegramAPI.t";
 import { VesselsList, CallbackQueryActions, VesselPropertyArray, Vessel, VesselProperty, VesselMetricSystem } from "./telegramBot.t";
 import { DB } from "./db";
 
@@ -83,7 +82,7 @@ class UpdateHandler {
     private menu() {
         let output = "Please select from the following options 👇";
 
-        let inline_keyboard: InlineKeyboardMarkup = []
+        let inline_keyboard: Telegram.InlineKeyboardMarkup = []
 
         inline_keyboard.push([
             // {
@@ -121,7 +120,7 @@ class UpdateHandler {
                 output += `${property}: ${[vessel[property]]}\n`
         })
 
-        let inline_keyboard: InlineKeyboardMarkup = []
+        let inline_keyboard: Telegram.InlineKeyboardMarkup = []
         let favoriteVessel = await this.db.favoriteFindOne(vessel)
             .catch(err => console.error(err))
 
@@ -155,7 +154,7 @@ class UpdateHandler {
     }
 
     private buttonsGrid(array: any[], maxColumn?: number) {
-        let keyboard: InlineKeyboardMarkup = []
+        let keyboard: Telegram.InlineKeyboardMarkup = []
         for (let c = 0, i = 0; i < array.length; c++) {
             keyboard.push([])
             keyboard.forEach((el: any, index: number) => {
