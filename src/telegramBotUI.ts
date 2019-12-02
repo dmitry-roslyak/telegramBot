@@ -51,19 +51,19 @@ class UI {
       })
 
       let inline_keyboard: Telegram.InlineKeyboardMarkup = []
-
-      inline_keyboard.push([
-        {
-          text: this.locale("location"), callback_data: CallbackQueryActions.location
-        },
-        {
-          text: this.locale("vessel_photo"), callback_data: CallbackQueryActions.photo
-        },
+      let btnArray = [];
+      btnArray.push({
+        text: this.locale("location"), callback_data: CallbackQueryActions.location
+      })
+      vessel[VesselProperty.MMSI] && btnArray.push({
+        text: this.locale("vessel_photo"), callback_data: CallbackQueryActions.photo
+      })
+      btnArray.push(
         vessel.isFavorite ?
           { text: this.locale("vessel_remove"), callback_data: CallbackQueryActions.favoritesRemove } :
           { text: this.locale("vessel_add"), callback_data: CallbackQueryActions.favoritesAdd }
-        ,
-      ])
+      )
+      inline_keyboard.push(btnArray)
 
       return { text, inline_keyboard }
 

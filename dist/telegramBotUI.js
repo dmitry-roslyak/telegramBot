@@ -47,17 +47,17 @@ class UI {
                     text += `${property}: ${[vessel[property]]}\n`;
             });
             let inline_keyboard = [];
-            inline_keyboard.push([
-                {
-                    text: this.locale("location"), callback_data: telegramBot_t_1.CallbackQueryActions.location
-                },
-                {
-                    text: this.locale("vessel_photo"), callback_data: telegramBot_t_1.CallbackQueryActions.photo
-                },
-                vessel.isFavorite ?
-                    { text: this.locale("vessel_remove"), callback_data: telegramBot_t_1.CallbackQueryActions.favoritesRemove } :
-                    { text: this.locale("vessel_add"), callback_data: telegramBot_t_1.CallbackQueryActions.favoritesAdd },
-            ]);
+            let btnArray = [];
+            btnArray.push({
+                text: this.locale("location"), callback_data: telegramBot_t_1.CallbackQueryActions.location
+            });
+            vessel[telegramBot_t_1.VesselProperty.MMSI] && btnArray.push({
+                text: this.locale("vessel_photo"), callback_data: telegramBot_t_1.CallbackQueryActions.photo
+            });
+            btnArray.push(vessel.isFavorite ?
+                { text: this.locale("vessel_remove"), callback_data: telegramBot_t_1.CallbackQueryActions.favoritesRemove } :
+                { text: this.locale("vessel_add"), callback_data: telegramBot_t_1.CallbackQueryActions.favoritesAdd });
+            inline_keyboard.push(btnArray);
             return { text, inline_keyboard };
         }
         else if (template == telegramBot_t_1.UI_template.vesselList) {
