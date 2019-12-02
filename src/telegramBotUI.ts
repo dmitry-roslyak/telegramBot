@@ -22,7 +22,7 @@ class UI {
   }
   public localize(template: UI_template, data?: any) {
     if (template == UI_template.queryIsTooOld || template == UI_template.photoNotAvailable ||
-      template == UI_template.errorTrylater || template == UI_template.favAdd) {
+      template == UI_template.errorTrylater || template == UI_template.favAdd || template == UI_template.favEmpty) {
       return { text: this.locale(template) }
     } else if (template == UI_template.hello) {
       return { text: this.locale("hello", this.user, botName) }

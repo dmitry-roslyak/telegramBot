@@ -63,7 +63,7 @@ class UpdateHandler {
         else if (text === "/fav" || text === "/fleet") {
             db_1.DB.favorites(this.chat_id)
                 .then((vessels) => {
-                this.sendMessage(telegramBot_t_1.UI_template.vesselListFav, vessels);
+                vessels.length ? this.sendMessage(telegramBot_t_1.UI_template.vesselListFav, vessels) : this.sendMessage(telegramBot_t_1.UI_template.favEmpty);
             })
                 .catch(err => console.error(err));
         }

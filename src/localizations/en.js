@@ -11,6 +11,7 @@ const l = {
   "photoNotAvailable": "⚠ Sorry, photo not available for this vessel",
   "queryIsTooOld": "⚠ Query result is too old, please submit new one",
   "vesselAddToFavorites": "🚢 Vessel has been added to your fleet! type /fleet to review",
+  "vesselFavoritesEmpty": "🌊 Your fleet is empty",
   "found_vessels": function (length) {
     return `Found vessels: ${length} 🔎🚢\nPlease select from the following 👇`
   },

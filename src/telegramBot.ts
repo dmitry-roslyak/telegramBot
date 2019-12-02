@@ -58,7 +58,7 @@ class UpdateHandler {
         } else if (text === "/fav" || text === "/fleet") {
             DB.favorites(this.chat_id)
                 .then((vessels: Array<any>) => {
-                    this.sendMessage(UI_template.vesselListFav, vessels)
+                    vessels.length ? this.sendMessage(UI_template.vesselListFav, vessels) : this.sendMessage(UI_template.favEmpty)
                 })
                 .catch(err => console.error(err))
         } else if (text && text.length > 2) {
