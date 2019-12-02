@@ -79,5 +79,6 @@ export enum UI_template {
     vesselList = "vesselList",
     vesselListFav = "vesselListFav",
     favAdd = "vesselAddToFavorites",
-    favEmpty = "vesselFavoritesEmpty"
+    favEmpty = "vesselFavoritesEmpty",
+    favRemove = "vesselRemoveFromFavorites"
 }

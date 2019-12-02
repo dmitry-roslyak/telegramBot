@@ -118,6 +118,7 @@ class UpdateHandler {
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesRemove:
                 db_1.DB.favoriteRemove(this.chat_id, href)
+                    .then(() => this.sendMessage(telegramBot_t_1.UI_template.favRemove))
                     .catch(err => console.error(err))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;

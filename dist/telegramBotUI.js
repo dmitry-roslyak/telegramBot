@@ -19,7 +19,8 @@ class UI {
     }
     localize(template, data) {
         if (template == telegramBot_t_1.UI_template.queryIsTooOld || template == telegramBot_t_1.UI_template.photoNotAvailable ||
-            template == telegramBot_t_1.UI_template.errorTrylater || template == telegramBot_t_1.UI_template.favAdd || template == telegramBot_t_1.UI_template.favEmpty) {
+            template == telegramBot_t_1.UI_template.errorTrylater || template == telegramBot_t_1.UI_template.favAdd || template == telegramBot_t_1.UI_template.favEmpty ||
+            template == telegramBot_t_1.UI_template.favRemove) {
             return { text: this.locale(template) };
         }
         else if (template == telegramBot_t_1.UI_template.hello) {

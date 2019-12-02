@@ -113,6 +113,7 @@ class UpdateHandler {
                 break;
             case CallbackQueryActions.favoritesRemove:
                 DB.favoriteRemove(this.chat_id, href)
+                    .then(() => this.sendMessage(UI_template.favRemove))
                     .catch(err => console.error(err))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;

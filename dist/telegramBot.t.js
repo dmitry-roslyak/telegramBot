@@ -73,5 +73,6 @@ var UI_template;
     UI_template["vesselListFav"] = "vesselListFav";
     UI_template["favAdd"] = "vesselAddToFavorites";
     UI_template["favEmpty"] = "vesselFavoritesEmpty";
+    UI_template["favRemove"] = "vesselRemoveFromFavorites";
 })(UI_template = exports.UI_template || (exports.UI_template = {}));
 //# sourceMappingURL=telegramBot.t.js.map
