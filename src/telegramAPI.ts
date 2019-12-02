@@ -2,7 +2,6 @@ import * as req from "request-promise"
 import { RequestCallback } from "request";
 
 const telegramApi = process.env.telegram_API_URL + process.env.telegram_API_Key + "/"
-const contactUsURL = process.env.telegram_Contact_URL
 
 const request = req.defaults({
     baseUrl: telegramApi,
@@ -81,4 +80,4 @@ function subscribe(callback: Telegram.SubscribeCallback): void {
     }
 }
 
-export { sendMessage, sendLocation, sendPhoto, subscribe, answerCallbackQuery, contactUsURL }
+export { sendMessage, sendLocation, sendPhoto, subscribe, answerCallbackQuery }

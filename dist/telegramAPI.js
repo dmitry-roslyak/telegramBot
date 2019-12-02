@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const req = require("request-promise");
 const telegramApi = process.env.telegram_API_URL + process.env.telegram_API_Key + "/";
-const contactUsURL = process.env.telegram_Contact_URL;
-exports.contactUsURL = contactUsURL;
 const request = req.defaults({
     baseUrl: telegramApi,
     json: true

@@ -23,6 +23,6 @@
         "@types/request": "^2.48.2",
         "@types/request-promise": "^4.1.44",
         "@types/validator": "^10.11.2",
-        "typescript": "^3.5.3"
+        "typescript": "^3.7.2"
     }
 }

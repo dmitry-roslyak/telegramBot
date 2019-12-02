@@ -61,4 +61,15 @@ exports.VesselPropertyArray = [
     "estimatedArrivalDate", VesselProperty.estimatedArrivalDate,
     "lastReportDate", VesselProperty.lastReportDate
 ];
+var UI_template;
+(function (UI_template) {
+    UI_template["queryIsTooOld"] = "queryIsTooOld";
+    UI_template["photoNotAvailable"] = "photoNotAvailable";
+    UI_template["errorTrylater"] = "errorTrylater";
+    UI_template["hello"] = "hello";
+    UI_template["menu"] = "menu";
+    UI_template["vesselInfo"] = "vesselInfo";
+    UI_template["vesselList"] = "vesselList";
+    UI_template["vesselListFav"] = "vesselListFav";
+})(UI_template = exports.UI_template || (exports.UI_template = {}));
 //# sourceMappingURL=telegramBot.t.js.map

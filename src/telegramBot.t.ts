@@ -68,3 +68,14 @@ export const VesselPropertyArray = [
     "estimatedArrivalDate", VesselProperty.estimatedArrivalDate,
     "lastReportDate", VesselProperty.lastReportDate
 ];
+
+export enum UI_template {
+    queryIsTooOld = "queryIsTooOld",
+    photoNotAvailable = "photoNotAvailable",
+    errorTrylater = "errorTrylater",
+    hello = "hello",
+    menu = "menu",
+    vesselInfo = "vesselInfo",
+    vesselList = "vesselList",
+    vesselListFav = "vesselListFav"
+}
