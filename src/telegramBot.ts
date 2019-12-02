@@ -55,7 +55,7 @@ class UpdateHandler {
             this.sendMessage(UI_template.hello);
         } else if (text === "/menu") {
             this.sendMessage(UI_template.menu)
-        } else if (text === "/fav") {
+        } else if (text === "/fav" || text === "/fleet") {
             DB.favorites(this.chat_id)
                 .then((vessels: Array<any>) => {
                     this.sendMessage(UI_template.vesselListFav, vessels)
@@ -107,6 +107,7 @@ class UpdateHandler {
                 break;
             case CallbackQueryActions.favoritesAdd:
                 DB.favoriteFindOneOrCreate(this.chat_id, data, href)
+                    .then(() => this.sendMessage(UI_template.favAdd))
                     .catch(err => console.error(err))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;

@@ -77,5 +77,6 @@ export enum UI_template {
     menu = "menu",
     vesselInfo = "vesselInfo",
     vesselList = "vesselList",
-    vesselListFav = "vesselListFav"
+    vesselListFav = "vesselListFav",
+    favAdd = "vesselAddToFavorites"
 }

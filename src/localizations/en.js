@@ -7,9 +7,10 @@ const l = {
   "vessels_not_found": "❌ Remove vessel",
   "vessel_remove": "❌ Remove vessel",
   "vessel_add": "⭐ Add to my fleet",
-  "errorTrylater": "Oops error happend, please try later",
-  "photoNotAvailable": "Sorry, photo not available for this vessel",
-  "queryIsTooOld": "Query result is too old, please submit new one",
+  "errorTrylater": "⚠ Oops error happend, please try later",
+  "photoNotAvailable": "⚠ Sorry, photo not available for this vessel",
+  "queryIsTooOld": "⚠ Query result is too old, please submit new one",
+  "vesselAddToFavorites": "🚢 Vessel has been added to your fleet! type /fleet to review",
   "found_vessels": function (length) {
     return `Found vessels: ${length} 🔎🚢\nPlease select from the following 👇`
   },

@@ -60,7 +60,7 @@ class UpdateHandler {
         else if (text === "/menu") {
             this.sendMessage(telegramBot_t_1.UI_template.menu);
         }
-        else if (text === "/fav") {
+        else if (text === "/fav" || text === "/fleet") {
             db_1.DB.favorites(this.chat_id)
                 .then((vessels) => {
                 this.sendMessage(telegramBot_t_1.UI_template.vesselListFav, vessels);
@@ -112,6 +112,7 @@ class UpdateHandler {
                 break;
             case telegramBot_t_1.CallbackQueryActions.favoritesAdd:
                 db_1.DB.favoriteFindOneOrCreate(this.chat_id, data, href)
+                    .then(() => this.sendMessage(telegramBot_t_1.UI_template.favAdd))
                     .catch(err => console.error(err))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;

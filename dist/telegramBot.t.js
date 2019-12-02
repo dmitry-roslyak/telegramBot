@@ -71,5 +71,6 @@ var UI_template;
     UI_template["vesselInfo"] = "vesselInfo";
     UI_template["vesselList"] = "vesselList";
     UI_template["vesselListFav"] = "vesselListFav";
+    UI_template["favAdd"] = "vesselAddToFavorites";
 })(UI_template = exports.UI_template || (exports.UI_template = {}));
 //# sourceMappingURL=telegramBot.t.js.map
