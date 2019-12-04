@@ -1,5 +1,5 @@
 export interface Vessel {
-    [property: string]: string;
+    [property: string]: string | any;
 }
 interface VesselsListItem {
     href: string;
@@ -19,23 +19,28 @@ export enum CallbackQueryActions {
     photo = "photo"
 }
 export enum VesselProperty {
-    name = "name",
-    shipType = "Ship type",
+    name = "Name",
+    shipType = "Type",
     flag = "Flag",
     IMO = "IMO",
     MMSI = "MMSI",
-    callsign = "Callsign",
-    builtYear = "Year of Built",
-    length = "length",
-    beam = "beam",
-    grossTonnage = "Gross Tonnage",
-    deadweight = "Summer Deadweight (t)",
-    currentDraught = "Current draught",
-    course = "course",
-    speed = "speed",
+    callsign = "Call Sign",
+    builtYear = "builtYear",
+    size = "Size",
+    // length = "length",
+    // beam = "beam",
+    GRT = "GRT",
+    DWT = "DWT",
+    currentDraught = "Draught",
+    course = "Course",
+    speed = "Speed",
+    status = "Status",
+    area = "Area",
+    port = "Port",
+    lastPort = "Last Port",
     destination = "Destination",
     estimatedArrivalDate = "ETA",
-    lastReportDate = "Last report ",
+    lastReportDate = "updatedAt",
     coordinates = "Coordinates",
     href = "href"
 }
@@ -50,23 +55,28 @@ export enum VesselMetricSystem {
 }
 
 export const VesselPropertyArray = [
-    "name", VesselProperty.name,
-    "shipType", VesselProperty.shipType,
-    "flag", VesselProperty.flag,
-    "IMO", VesselProperty.IMO,
-    "MMSI", VesselProperty.MMSI,
-    "callsign", VesselProperty.callsign,
-    "builtYear", VesselProperty.builtYear,
-    "length", VesselProperty.length,
-    "beam", VesselProperty.beam,
-    "grossTonnage", VesselProperty.grossTonnage,
-    "deadweight", VesselProperty.deadweight,
-    "currentDraught", VesselProperty.currentDraught,
-    "course", VesselProperty.course,
-    "speed", VesselProperty.speed,
-    "destination", VesselProperty.destination,
-    "estimatedArrivalDate", VesselProperty.estimatedArrivalDate,
-    "lastReportDate", VesselProperty.lastReportDate
+    VesselProperty.name,
+    VesselProperty.shipType,
+    VesselProperty.flag,
+    VesselProperty.IMO,
+    VesselProperty.MMSI,
+    VesselProperty.callsign,
+    VesselProperty.builtYear,
+    VesselProperty.size,
+    // VesselProperty.length,
+    // VesselProperty.beam,
+    VesselProperty.GRT,
+    VesselProperty.DWT,
+    VesselProperty.status,
+    VesselProperty.speed,
+    VesselProperty.course,
+    VesselProperty.currentDraught,
+    VesselProperty.area,
+    VesselProperty.port,
+    VesselProperty.lastPort,
+    VesselProperty.destination,
+    VesselProperty.estimatedArrivalDate,
+    VesselProperty.lastReportDate
 ];
 
 export enum UI_template {

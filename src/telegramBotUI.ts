@@ -44,12 +44,17 @@ class UI {
       let vessel: Vessel = data;
       let text = "";
 
-      VesselPropertyArray.forEach((property, i) => {
-        if (!(i % 2)) return
-        else if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate)
-          vessel[property] = (new Date(vessel[property])).toLocaleString()
-        else if (vessel[property])
-          text += `${property}: ${[vessel[property]]}\n`
+      VesselPropertyArray.forEach((property) => {
+        let str;
+        if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate) {
+          str = (new Date(vessel[property])).toLocaleString()
+        } else if (property == VesselProperty.flag) {
+          str = `${UI.countryFlag(vessel[property])} ${vessel[property]}`
+        } else if (property == VesselProperty.port || property == VesselProperty.lastPort) {
+          str = `${UI.countryFlag(vessel[property].country)} ${vessel[property].name} ${(new Date(vessel[property].date)).toLocaleString()} ${property == VesselProperty.port ? this.locale("arrived") : this.locale("departed")}`
+        } else str = vessel[property]
+        // text += `${property}: ${str}\n`
+        text += `${this.locale(property)}: ${str}\n`
       })
 
       let inline_keyboard: Telegram.InlineKeyboardMarkup = []
@@ -96,7 +101,7 @@ class UI {
   }
 
   public static countryFlag(country: string) {
-    let res = countries.find((el: any) => el.common == country || el.cca3 == country)
+    let res = countries.find((el: any) => el.cca2 == country || el.common.toUpperCase() == country.toUpperCase() || el.cca3 == country)
     return res && res.flag || ""
   }
 

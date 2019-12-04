@@ -40,13 +40,21 @@ class UI {
         else if (template == telegramBot_t_1.UI_template.vesselInfo) {
             let vessel = data;
             let text = "";
-            telegramBot_t_1.VesselPropertyArray.forEach((property, i) => {
-                if (!(i % 2))
-                    return;
-                else if (property == telegramBot_t_1.VesselProperty.estimatedArrivalDate || property == telegramBot_t_1.VesselProperty.lastReportDate)
-                    vessel[property] = (new Date(vessel[property])).toLocaleString();
-                else if (vessel[property])
-                    text += `${property}: ${[vessel[property]]}\n`;
+            telegramBot_t_1.VesselPropertyArray.forEach((property) => {
+                let str;
+                if (property == telegramBot_t_1.VesselProperty.estimatedArrivalDate || property == telegramBot_t_1.VesselProperty.lastReportDate) {
+                    str = (new Date(vessel[property])).toLocaleString();
+                }
+                else if (property == telegramBot_t_1.VesselProperty.flag) {
+                    str = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
+                }
+                else if (property == telegramBot_t_1.VesselProperty.port || property == telegramBot_t_1.VesselProperty.lastPort) {
+                    str = `${UI.countryFlag(vessel[property].country)} ${vessel[property].name} ${(new Date(vessel[property].date)).toLocaleString()} ${property == telegramBot_t_1.VesselProperty.port ? this.locale("arrived") : this.locale("departed")}`;
+                }
+                else
+                    str = vessel[property];
+                // text += `${property}: ${str}\n`
+                text += `${this.locale(property)}: ${str}\n`;
             });
             let inline_keyboard = [];
             let btnArray = [];
@@ -85,7 +93,7 @@ class UI {
         return array;
     }
     static countryFlag(country) {
-        let res = countries.find((el) => el.common == country || el.cca3 == country);
+        let res = countries.find((el) => el.cca2 == country || el.common.toUpperCase() == country.toUpperCase() || el.cca3 == country);
         return res && res.flag || "";
     }
     static buttonsGrid(array, maxColumn) {
