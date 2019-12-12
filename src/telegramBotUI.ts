@@ -101,15 +101,13 @@ class UI {
 
   public static portToString(port: any, str: string) {
     try {
-      let dateStr = UI.dateToLocaleString(port.date);
-      // console.log(dateStr);
       let output = "";
+      output += `${UI.countryFlag(port.country)} ${port.name} `;
+      let dateStr = UI.dateToLocaleString(port.date);
       if (dateStr) output += `${dateStr} ${str}`;
-      output += `${UI.countryFlag(port.country)} ${port.name}`;
       return output;
     } catch (error) {
       console.log(error);
-      return null;
     }
   }
   public static dateToLocaleString(date: string) {
