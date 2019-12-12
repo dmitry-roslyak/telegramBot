@@ -45,13 +45,12 @@ export enum VesselProperty {
     href = "href"
 }
 
-export enum VesselMetricSystem {
-    length = "m",
-    currentDraught = "m",
-    beam = "m",
-    speed = "kn",
-    grossTonnage = 't',
-    deadweight = 't'
+export const VesselMeasurementSystem = {
+    [VesselProperty.GRT + ""]: "t",
+    [VesselProperty.DWT + ""]: "t",
+    [VesselProperty.speed + ""]: "kn",
+    [VesselProperty.size + ""]: "m",
+    [VesselProperty.currentDraught + ""]: "m",
 }
 
 export const VesselPropertyArray = [

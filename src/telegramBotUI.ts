@@ -1,4 +1,4 @@
-import { VesselPropertyArray, VesselProperty, CallbackQueryActions, Vessel, VesselsList, UI_template } from "./telegramBot.t";
+import { VesselPropertyArray, VesselProperty, CallbackQueryActions, Vessel, VesselsList, UI_template, VesselMeasurementSystem } from "./telegramBot.t";
 import { localization_en } from "./localizations/en";
 const countries = require("../countries.json")
 
@@ -45,16 +45,15 @@ class UI {
       let text = "";
 
       VesselPropertyArray.forEach((property) => {
-        let str;
+        let info;
         if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate) {
-          str = (new Date(vessel[property])).toLocaleString()
+          info = UI.dateToLocaleString(vessel[property])
         } else if (property == VesselProperty.flag) {
-          str = `${UI.countryFlag(vessel[property])} ${vessel[property]}`
-        } else if (property == VesselProperty.port || property == VesselProperty.lastPort) {
-          str = `${UI.countryFlag(vessel[property].country)} ${vessel[property].name} ${(new Date(vessel[property].date)).toLocaleString()} ${property == VesselProperty.port ? this.locale("arrived") : this.locale("departed")}`
-        } else str = vessel[property]
-        // text += `${property}: ${str}\n`
-        text += `${this.locale(property)}: ${str}\n`
+          info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`
+        } else if ((property == VesselProperty.port || property == VesselProperty.lastPort)) {
+          info = UI.portToString(vessel[property], property == VesselProperty.port ? this.locale("arrived") : this.locale("departed"));
+        } else info = vessel[property]
+        if (vessel[property] && info) text += `${this.locale(property)}: ${info} ${VesselMeasurementSystem[property] || ""}\n`
       })
 
       let inline_keyboard: Telegram.InlineKeyboardMarkup = []
@@ -100,9 +99,35 @@ class UI {
     return array;
   }
 
-  public static countryFlag(country: string) {
-    let res = countries.find((el: any) => el.cca2 == country || el.common.toUpperCase() == country.toUpperCase() || el.cca3 == country)
-    return res && res.flag || ""
+  public static portToString(port: any, str: string) {
+    try {
+      let dateStr = UI.dateToLocaleString(port.date);
+      // console.log(dateStr);
+      let output = "";
+      if (dateStr) output += `${dateStr} ${str}`;
+      output += `${UI.countryFlag(port.country)} ${port.name}`;
+      return output;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+  public static dateToLocaleString(date: string) {
+    // console.log(date);
+    try {
+      return date ? new Date(date).toLocaleString() : null;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  public static countryFlag(country: string): string {
+    try {
+      let res = countries.find((el: any) => el.cca2 == country || el.common.toUpperCase() == country.toUpperCase() || el.cca3 == country)
+      return res && res.flag || country;
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   public static buttonsGrid(array: any[], maxColumn?: number) {

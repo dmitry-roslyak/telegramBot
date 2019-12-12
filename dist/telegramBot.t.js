@@ -38,15 +38,13 @@ var VesselProperty;
     VesselProperty["coordinates"] = "Coordinates";
     VesselProperty["href"] = "href";
 })(VesselProperty = exports.VesselProperty || (exports.VesselProperty = {}));
-var VesselMetricSystem;
-(function (VesselMetricSystem) {
-    VesselMetricSystem["length"] = "m";
-    VesselMetricSystem["currentDraught"] = "m";
-    VesselMetricSystem["beam"] = "m";
-    VesselMetricSystem["speed"] = "kn";
-    VesselMetricSystem["grossTonnage"] = "t";
-    VesselMetricSystem["deadweight"] = "t";
-})(VesselMetricSystem = exports.VesselMetricSystem || (exports.VesselMetricSystem = {}));
+exports.VesselMeasurementSystem = {
+    [VesselProperty.GRT + ""]: "t",
+    [VesselProperty.DWT + ""]: "t",
+    [VesselProperty.speed + ""]: "kn",
+    [VesselProperty.size + ""]: "m",
+    [VesselProperty.currentDraught + ""]: "m",
+};
 exports.VesselPropertyArray = [
     VesselProperty.name,
     VesselProperty.shipType,
