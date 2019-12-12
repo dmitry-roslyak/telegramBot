@@ -33,7 +33,7 @@ class DB {
         return models_1.Favorite.findOne({
             where: {
                 [sequelize_1.Op.and]: { user_id },
-                [sequelize_1.Op.or]: [{ href: data[telegramBot_t_1.VesselProperty.href] }],
+                [sequelize_1.Op.or]: [{ mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { href: data[telegramBot_t_1.VesselProperty.href] }],
             }
         });
     }
@@ -42,6 +42,7 @@ class DB {
             let fav = yield this.favoriteFindOne(user_id, data);
             return fav || models_1.Favorite.create({
                 user_id,
+                mmsi: data[telegramBot_t_1.VesselProperty.MMSI],
                 name: data[telegramBot_t_1.VesselProperty.name],
                 country: data[telegramBot_t_1.VesselProperty.flag],
                 href

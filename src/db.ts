@@ -23,8 +23,7 @@ class DB {
         return Favorite.findOne({
             where: {
                 [Op.and]: { user_id },
-                [Op.or]: [{ href: data[VesselProperty.href] }],
-                // [Op.or]: [{ { mmsi: data[VesselProperty.MMSI] }, { name: data[VesselProperty.name], country: data[VesselProperty.flag] }],
+                [Op.or]: [{ mmsi: data[VesselProperty.MMSI] }, { href: data[VesselProperty.href] }],
             }
         })
     }
@@ -33,6 +32,7 @@ class DB {
 
         return fav || Favorite.create({
             user_id,
+            mmsi: data[VesselProperty.MMSI],
             name: data[VesselProperty.name],
             country: data[VesselProperty.flag],
             href
