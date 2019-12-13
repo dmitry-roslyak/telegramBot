@@ -19,22 +19,23 @@ var port = normalizePort(process.env.PORT || '3000');
  * Create HTTP server.
  */
 
+var timerID;
+
 var server = http.createServer(function (request, response) {
-
-
-  response.statusCode = 307;
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" && !timerID) {
     //keep awake heroku
     var hostname = request.headers.host;
-    setInterval(function () {
+    timerID = setInterval(function () {
       var date = new Date();
-      if (date.getHours() >= 14 || date.getHours() <= 5) {
+      console.log(date);
+      if (date.getHours() >= 10 || date.getHours() <= 2) {
         http.get(hostname);
       }
     }, 15 * 60 * 1000);
 
     req.head(process.env.vessel_API)
   }
+  response.statusCode = 307;
   process.env.tg_bot_link && response.setHeader("Location", process.env.tg_bot_link);
   response.end("It works!");
 })
