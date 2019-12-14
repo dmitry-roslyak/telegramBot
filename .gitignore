@@ -2,3 +2,4 @@
 env.json
 _all_countries.json
 *.backup
+.env-cmdrc.*

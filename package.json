@@ -3,13 +3,15 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "start": "cross-env NODE_ENV=production node ./bin/www",
-        "prod": "tsc && cross-env NODE_ENV=production node ./bin/www",
+        "start": "env-cmd -e production node ./bin/www",
+        "prod": "tsc && env-cmd -e production node ./bin/www",
+        "debug": "env-cmd -e development node --inspect-brk ./bin/www",
         "watch": "tsc -w"
     },
     "dependencies": {
         "cross-env": "^5.2.0",
         "debug": "~2.6.9",
+        "env-cmd": "^10.0.1",
         "pg": "^7.11.0",
         "pg-hstore": "^2.3.3",
         "request": "^2.88.0",
