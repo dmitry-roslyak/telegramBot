@@ -3,9 +3,9 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "start": "env-cmd -e production node ./bin/www",
-        "prod": "tsc && env-cmd -e production node ./bin/www",
-        "debug": "env-cmd -e development node --inspect-brk ./bin/www",
+        "start": "env-cmd -f ./production.env node ./bin/www",
+        "dev": "env-cmd -f ./local.env node ./bin/www",
+        "debug": "env-cmd -f ./local.env --inspect-brk ./bin/www",
         "watch": "tsc -w"
     },
     "dependencies": {
