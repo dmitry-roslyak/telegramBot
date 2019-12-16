@@ -5,7 +5,7 @@
     "scripts": {
         "start": "env-cmd -f ./production.env node ./bin/www",
         "dev": "env-cmd -f ./local.env node ./bin/www",
-        "debug": "env-cmd -f ./local.env --inspect-brk ./bin/www",
+        "debug": "env-cmd -f ./local.env node --inspect-brk ./bin/www",
         "watch": "tsc -w"
     },
     "dependencies": {
