@@ -1,6 +1,6 @@
 ### About
 Telegram bot(node.js, typescript, PostgreSQL & Sequelize ORM) 
-https://aqueous-thicket-83094.herokuapp.com/
+https://t.me/example348Bot
 ### Capabilities
 1) Search vessels by name, mmsi/imo number
 2) Show vessel info, location, photo
