@@ -10,6 +10,7 @@ const botName = process.env.tg_bot_link.match(/(?<=t.me\/)[^]+/) || "bot";
 const contactUsURL = process.env.telegram_Contact_URL;
 class UI {
     constructor(user) {
+        this.user = user;
         if (locales[user.language_code]) {
             this.locale = locales[user.language_code];
         }

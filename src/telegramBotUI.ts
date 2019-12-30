@@ -1,5 +1,6 @@
 import { VesselPropertyArray, VesselProperty, CallbackQueryActions, Vessel, VesselsList, UI_template, VesselMeasurementSystem } from "./telegramBot.t";
 import { localization_en } from "./localizations/en";
+import { Telegram } from "./telegram";
 const countries = require("../countries.json")
 
 const locales: any = {
@@ -14,13 +15,14 @@ class UI {
   private user: Telegram.User;
 
   constructor(user: Telegram.User) {
+    this.user = user;
     if (locales[user.language_code]) {
       this.locale = locales[user.language_code];
     } else {
       this.locale = locales["en"];
     }
   }
-  public localize(template: UI_template, data?: any) {
+  public localize(template: UI_template, data?: any): { text: string, inline_keyboard?: Telegram.InlineKeyboardMarkup } {
     if (template == UI_template.queryIsTooOld || template == UI_template.photoNotAvailable ||
       template == UI_template.errorTrylater || template == UI_template.favAdd || template == UI_template.favEmpty ||
       template == UI_template.favRemove) {

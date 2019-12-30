@@ -88,6 +88,9 @@ class UpdateHandler {
                 break;
             case telegramBot_t_1.CallbackQueryActions.favorites:
                 db_1.DB.favorites(this.chat_id)
+                    .then((vessels) => {
+                    vessels.length ? this.sendMessage(telegramBot_t_1.UI_template.vesselListFav, vessels) : this.sendMessage(telegramBot_t_1.UI_template.favEmpty);
+                })
                     .catch(() => this.sendMessage(telegramBot_t_1.UI_template.errorTrylater))
                     .finally(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
                 break;

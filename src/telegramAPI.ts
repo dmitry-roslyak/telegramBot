@@ -1,5 +1,6 @@
 import * as req from "request-promise"
 import { RequestCallback } from "request";
+import { Telegram } from "./telegram";
 
 const telegramApi = process.env.telegram_API_URL + process.env.telegram_API_Key + "/"
 

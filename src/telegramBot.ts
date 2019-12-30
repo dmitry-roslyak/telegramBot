@@ -3,6 +3,7 @@ import vesselAPI from "./vesselsAPI";
 import { CallbackQueryActions, Vessel, VesselProperty, UI_template } from "./telegramBot.t";
 import { DB } from "./db";
 import { UI } from "./telegramBotUI";
+import { Telegram } from "./telegram";
 
 const answerCallbackActions = [CallbackQueryActions.href, CallbackQueryActions.location, CallbackQueryActions.photo, CallbackQueryActions.favoritesAdd, CallbackQueryActions.favoritesRemove] as string[]
 
@@ -83,6 +84,9 @@ class UpdateHandler {
                 break;
             case CallbackQueryActions.favorites:
                 DB.favorites(this.chat_id)
+                    .then((vessels: Array<any>) => {
+                        vessels.length ? this.sendMessage(UI_template.vesselListFav, vessels) : this.sendMessage(UI_template.favEmpty)
+                    })
                     .catch(() => this.sendMessage(UI_template.errorTrylater))
                     .finally(() => answerCallbackQuery(callback_query.id))
                 break;
