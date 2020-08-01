@@ -46,7 +46,9 @@ class UI {
       let vessel: Vessel = data;
       let text = "";
 
+      if (typeof vessel === "object") {
       VesselPropertyArray.forEach((property) => {
+        if (!vessel[property]) return;
         let info;
         if (property == VesselProperty.estimatedArrivalDate || property == VesselProperty.lastReportDate) {
           info = UI.dateToLocaleString(vessel[property])
@@ -57,6 +59,7 @@ class UI {
         } else info = vessel[property]
         if (vessel[property] && info) text += `${this.locale(property)}: ${info} ${VesselMeasurementSystem[property] || ""}\n`
       })
+      } else return { text: this.locale(UI_template.errorTrylater) };
 
       let inline_keyboard: Telegram.InlineKeyboardMarkup = []
       let btnArray = [];
