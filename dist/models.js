@@ -8,7 +8,7 @@ let sequelizeDefaultOptions = {
     },
     "logging": false
 };
-if (process.env.SSL_ENABLED) {
+if (process.env.SSL_ENABLED == "true") {
     sequelizeDefaultOptions["dialectOptions"] = {
         "ssl": true
     };
