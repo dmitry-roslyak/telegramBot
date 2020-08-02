@@ -67,7 +67,7 @@ exports.VesselPropertyArray = [
     VesselProperty.lastPort,
     VesselProperty.destination,
     VesselProperty.estimatedArrivalDate,
-    VesselProperty.lastReportDate
+    VesselProperty.lastReportDate,
 ];
 var UI_template;
 (function (UI_template) {

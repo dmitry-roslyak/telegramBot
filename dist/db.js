@@ -17,12 +17,12 @@ class DB {
         return models_1.Query.findOne({
             where: {
                 chat_id,
-                message_id
-            }
+                message_id,
+            },
         });
     }
-    static queryCreate(chat_id, message, data) {
-        let message_id = message.result.message_id;
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    static queryCreate(chat_id, message_id, data) {
         return models_1.Query.create({
             message_id,
             chat_id,
@@ -34,19 +34,20 @@ class DB {
             where: {
                 [sequelize_1.Op.and]: { user_id },
                 [sequelize_1.Op.or]: [{ mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { href: data[telegramBot_t_1.VesselProperty.href] }],
-            }
+            },
         });
     }
     static favoriteFindOneOrCreate(user_id, data, href) {
         return __awaiter(this, void 0, void 0, function* () {
-            let fav = yield this.favoriteFindOne(user_id, data);
-            return fav || models_1.Favorite.create({
-                user_id,
-                mmsi: data[telegramBot_t_1.VesselProperty.MMSI],
-                name: data[telegramBot_t_1.VesselProperty.name],
-                country: data[telegramBot_t_1.VesselProperty.flag],
-                href
-            });
+            const fav = yield this.favoriteFindOne(user_id, data);
+            return (fav ||
+                models_1.Favorite.create({
+                    user_id,
+                    mmsi: data[telegramBot_t_1.VesselProperty.MMSI],
+                    name: data[telegramBot_t_1.VesselProperty.name],
+                    country: data[telegramBot_t_1.VesselProperty.flag],
+                    href,
+                }));
         });
     }
     static favorites(user_id) {
@@ -54,7 +55,7 @@ class DB {
     }
     static favoriteRemove(user_id, href) {
         return __awaiter(this, void 0, void 0, function* () {
-            let fav = yield this.favoriteFindOne(user_id, { href });
+            const fav = yield this.favoriteFindOne(user_id, { href });
             return fav && fav.destroy();
         });
     }
