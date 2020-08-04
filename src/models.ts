@@ -17,7 +17,9 @@ if (process.env.SSL_ENABLED === "true") {
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is undefined");
 const sequelize = new Sequelize(process.env.DATABASE_URL, sequelizeDefaultOptions);
 
-class Query extends Model {}
+class Query extends Model {
+  data: string;
+}
 class Favorite extends Model {
   id: string;
 }

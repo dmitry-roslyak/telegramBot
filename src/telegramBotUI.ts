@@ -65,25 +65,23 @@ class UI {
       const vessel: Vessel = data;
       let text = "";
 
-      if (typeof vessel === "object") {
-        VesselPropertyArray.forEach((property) => {
-          if (!vessel[property]) return;
-          let info;
-          if (property === VesselProperty.estimatedArrivalDate || property === VesselProperty.lastReportDate) {
-            info = UI.dateToLocaleString(vessel[property]);
-          } else if (property === VesselProperty.flag) {
-            info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
-          } else if (property === VesselProperty.port || property === VesselProperty.lastPort) {
-            info = UI.portToString(
-              vessel[property],
-              property === VesselProperty.port ? this.locale("arrived") : this.locale("departed")
-            );
-          } else info = vessel[property];
-          if (vessel[property] && info) {
-            text += `${this.locale(property)}: ${info} ${VesselMeasurementSystem[property] || ""}\n`;
-          }
-        });
-      } else return { text: this.locale(UI_template.errorTrylater) };
+      VesselPropertyArray.forEach((property) => {
+        if (!vessel[property]) return;
+        let info;
+        if (property === VesselProperty.estimatedArrivalDate || property === VesselProperty.lastReportDate) {
+          info = UI.dateToLocaleString(vessel[property]);
+        } else if (property === VesselProperty.flag) {
+          info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
+        } else if (property === VesselProperty.port || property === VesselProperty.lastPort) {
+          info = UI.portToString(
+            vessel[property],
+            property === VesselProperty.port ? this.locale("arrived") : this.locale("departed")
+          );
+        } else info = vessel[property];
+        if (info) {
+          text += `${this.locale(property)}: ${info} ${VesselMeasurementSystem[property] || ""} \n`;
+        }
+      });
 
       const inline_keyboard: Telegram.InlineKeyboardMarkup = [];
       const btnArray = [];

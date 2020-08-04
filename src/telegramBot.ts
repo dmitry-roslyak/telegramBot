@@ -1,6 +1,6 @@
 import { sendLocation, sendMessage, answerCallbackQuery, subscribe, sendPhoto } from "./telegramAPI";
 import vesselAPI from "./vesselsAPI";
-import { CallbackQueryActions, Vessel, VesselProperty, UI_template } from "./telegramBot.t";
+import { CallbackQueryActions, Vessel, VesselProperty, UI_template, VesselsList } from "./telegramBot.t";
 import { DB } from "./db";
 import { UI } from "./telegramBotUI";
 import { Telegram } from "./telegram";
@@ -19,9 +19,8 @@ subscribe(function (messages) {
 
 class UpdateHandler {
   private _chat_id: number;
-  private _user: Telegram.User;
+  // private _user: Telegram.User;
   private UI: UI;
-  private static _self: UpdateHandler;
 
   public get chat_id(): number {
     return this._chat_id;
@@ -29,13 +28,12 @@ class UpdateHandler {
 
   // eslint-disable-next-line accessor-pairs
   public set user(user: Telegram.User) {
-    this._user = user;
+    // this._user = user;
     this._chat_id = user.id;
     this.UI = new UI(user);
   }
 
   constructor(element: Telegram.Update) {
-    UpdateHandler._self = this;
     if (element.message) {
       this.user = element.message.from;
       this.commandsHandler(element.message.text);
@@ -43,18 +41,15 @@ class UpdateHandler {
       this.user = element.callback_query.from;
       const action = element.callback_query.data.split(":");
       if (answerCallbackActions.includes(action[0])) {
-        DB.queryfindOne(this.chat_id, element.callback_query.message.message_id)
-          .then((query: any) => {
-            if (!query) return Promise.reject(new Error("Query not found"));
-            const data = JSON.parse(query.data);
-            const href = action.length === 2 ? data[action[1]].href : data.href;
-            this.callbackQueryHandler(element.callback_query, action[0], href, data);
-          })
-          .catch((err) => {
-            console.error(err);
+        DB.queryfindOne(this.chat_id, element.callback_query.message.message_id).then((query) => {
+          if (!query) {
             answerCallbackQuery(element.callback_query.id);
-            this.sendMessage(UI_template.queryIsTooOld);
-          });
+            return this.sendMessage(UI_template.queryIsTooOld);
+          }
+          const data = JSON.parse(query.data);
+          const href = action.length === 2 ? data[action[1]].href : data.href;
+          this.callbackQueryHandler(element.callback_query, action[0], href, data);
+        });
       } else this.callbackQueryHandler(element.callback_query, action[0]);
     }
   }
@@ -65,111 +60,82 @@ class UpdateHandler {
     } else if (text === "/menu") {
       this.sendMessage(UI_template.menu);
     } else if (text === "/fav" || text === "/fleet") {
-      DB.favorites(this.chat_id)
-        .then((vessels: Array<any>) => {
-          vessels.length
-            ? this.sendMessage(UI_template.vesselListFav, vessels)
-            : this.sendMessage(UI_template.favEmpty);
-        })
-        .catch((err) => console.error(err));
+      DB.favorites(this.chat_id).then((vessels) => {
+        vessels.length ? this.sendMessage(UI_template.vesselListFav, vessels) : this.sendMessage(UI_template.favEmpty);
+      });
     } else if (text && text.length > 2) {
       if (/\d{7}|\d{9}/.test(text)) {
         vesselAPI
-          .find(encodeURI(text))
-          .then(this.vesselWithFavorite)
-          .then((vessel: any) => this.sendMessage(UI_template.vesselInfo, vessel))
-          .catch(() => this.sendMessage(UI_template.errorTrylater));
+          .find(text)
+          .then(this.vesselWithFavorite.bind(this))
+          .then((vessel) =>
+            vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.errorTrylater)
+          );
       } else {
         vesselAPI
-          .find(encodeURI(text))
-          .then((vessels: any) => this.sendMessage(UI_template.vesselList, vessels))
-          .catch(() => this.sendMessage(UI_template.errorTrylater));
+          .find(text)
+          .then((vessels: VesselsList) =>
+            vessels ? this.sendMessage(UI_template.vesselList, vessels) : this.sendMessage(UI_template.errorTrylater)
+          );
       }
     }
   }
 
-  private callbackQueryHandler(
-    callback_query: Telegram.CallbackQuery,
-    action: string,
-    href?: string,
-    data?: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    payload?: string
-  ) {
+  private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any) {
     switch (action) {
-      case CallbackQueryActions.search:
-        answerCallbackQuery(callback_query.id);
-        break;
-      case CallbackQueryActions.favorites:
-        DB.favorites(this.chat_id)
-          .then((vessels: Array<any>) => {
-            vessels.length
-              ? this.sendMessage(UI_template.vesselListFav, vessels)
-              : this.sendMessage(UI_template.favEmpty);
-          })
-          .catch(() => this.sendMessage(UI_template.errorTrylater))
-          .finally(() => answerCallbackQuery(callback_query.id));
-        break;
       case CallbackQueryActions.href:
         vesselAPI
           .getOne(href)
-          .then(this.vesselWithFavorite)
-          .then((vessel: any) => this.sendMessage(UI_template.vesselInfo, vessel))
-          .catch(() => this.sendMessage(UI_template.errorTrylater))
-          .finally(() => answerCallbackQuery(callback_query.id));
+          .then(this.vesselWithFavorite.bind(this))
+          .then((vessel) =>
+            vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.errorTrylater)
+          )
+          .then(() => answerCallbackQuery(callback_query.id));
         break;
       case CallbackQueryActions.location:
         vesselAPI
           .getOne(href)
-          .then((vessel: any) => sendLocation(this.chat_id, vessel.Coordinates))
-          .catch(() => this.sendMessage(UI_template.errorTrylater))
-          .finally(() => answerCallbackQuery(callback_query.id));
+          .then((vessel) =>
+            vessel ? sendLocation(this.chat_id, vessel.Coordinates) : this.sendMessage(UI_template.errorTrylater)
+          )
+          .then(() => answerCallbackQuery(callback_query.id));
         break;
       case CallbackQueryActions.photo:
         vesselAPI
           .imageFind(data[VesselProperty.MMSI])
-          .then((imgSrc: string) => sendPhoto(this.chat_id, imgSrc))
-          .catch(() => this.sendMessage(UI_template.photoNotAvailable))
-          .finally(() => answerCallbackQuery(callback_query.id));
+          .then((imgSrc) =>
+            imgSrc ? sendPhoto(this.chat_id, imgSrc) : this.sendMessage(UI_template.photoNotAvailable)
+          )
+          .then(() => answerCallbackQuery(callback_query.id));
         break;
       case CallbackQueryActions.favoritesAdd:
         DB.favoriteFindOneOrCreate(this.chat_id, data, href)
-          .then(() => this.sendMessage(UI_template.favAdd))
-          .catch((err) => console.error(err))
-          .finally(() => answerCallbackQuery(callback_query.id));
+          .then((fav) => this.sendMessage(fav ? UI_template.favAdd : UI_template.errorTrylater))
+          .then(() => answerCallbackQuery(callback_query.id));
         break;
       case CallbackQueryActions.favoritesRemove:
         DB.favoriteRemove(this.chat_id, href)
           .then(() => this.sendMessage(UI_template.favRemove))
-          .catch((err) => console.error(err))
-          .finally(() => answerCallbackQuery(callback_query.id));
+          .then(() => answerCallbackQuery(callback_query.id));
         break;
     }
   }
 
   private async vesselWithFavorite(vessel: Vessel) {
-    try {
-      return Promise.resolve({
-        ...vessel,
-        isFavorite: !!(await DB.favoriteFindOne(UpdateHandler._self.chat_id, vessel)),
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    return Promise.resolve({
+      ...vessel,
+      isFavorite: !!(await DB.favoriteFindOne(this.chat_id, vessel)),
+    });
   }
 
   private async sendMessage(templateMessage: UI_template, data?: any) {
     let message;
     const localized = this.UI.localize(templateMessage, data);
-    try {
-      if (localized.inline_keyboard) {
-        message = await sendMessage(this.chat_id, localized.text, { inline_keyboard: localized.inline_keyboard });
-      } else {
-        message = await sendMessage(this.chat_id, localized.text);
-      }
-      data && DB.queryCreate(this.chat_id, message.result.message_id, data);
-    } catch (error) {
-      console.log(error);
+    if (localized.inline_keyboard) {
+      message = await sendMessage(this.chat_id, localized.text, { inline_keyboard: localized.inline_keyboard });
+    } else {
+      message = await sendMessage(this.chat_id, localized.text);
     }
+    data && message.result && DB.queryCreate(this.chat_id, message.result.message_id, data);
   }
 }

@@ -1,37 +1,33 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const req = require("request-promise");
-const request = req.defaults({
-    baseUrl: process.env.vessel_API,
-    json: true,
-});
+const node_fetch_1 = require("node-fetch");
+const legacyURL = require("url");
 const vesselAPI = {
     getOne: function (vesselHref) {
-        const pr = request.get({
-            url: "/view",
-            qs: {
-                vesselHref,
-            },
+        const url = legacyURL.format({
+            pathname: process.env.vessel_API + "/view",
+            query: { vesselHref },
         });
-        pr.catch((err) => console.error(err));
-        return pr;
+        return node_fetch_1.default(url)
+            .then((res) => res.ok && res.json())
+            .catch((err) => console.error(err));
     },
     find: function (text) {
-        const pr = request.get({
-            url: "/search/" + text,
+        const url = legacyURL.format({
+            pathname: process.env.vessel_API + "/search/" + text,
         });
-        pr.catch((err) => console.error(err));
-        return pr;
+        return node_fetch_1.default(url)
+            .then((res) => res.ok && res.json())
+            .catch((err) => console.error(err));
     },
     imageFind: function (mmsi) {
-        const pr = request.get({
-            url: "/imageFind/",
-            qs: {
-                mmsi,
-            },
+        const url = legacyURL.format({
+            pathname: process.env.vessel_API + "/imageFind/",
+            query: { mmsi },
         });
-        pr.catch((err) => console.error(err));
-        return pr;
+        return node_fetch_1.default(url)
+            .then((res) => (res.ok ? res.text() : null))
+            .catch((err) => console.error(err));
     },
 };
 exports.default = vesselAPI;

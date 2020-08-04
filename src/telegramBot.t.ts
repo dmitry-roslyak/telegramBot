@@ -1,6 +1,3 @@
-export interface Vessel {
-  [property: string]: string | any;
-}
 interface VesselsListItem {
   href: string;
   name: string;
@@ -89,4 +86,39 @@ export enum UI_template {
   favAdd = "vesselAddToFavorites",
   favEmpty = "vesselFavoritesEmpty",
   favRemove = "vesselRemoveFromFavorites",
+}
+
+export interface Vessel {
+  [VesselProperty.name]: string;
+  [VesselProperty.shipType]: string;
+  [VesselProperty.flag]: string;
+  [VesselProperty.IMO]: string;
+  [VesselProperty.MMSI]: string;
+  [VesselProperty.callsign]: string;
+  [VesselProperty.builtYear]: string;
+  [VesselProperty.size]: string;
+  // [VesselProperty.length]: string
+  // [VesselProperty.beam]: string
+  [VesselProperty.GRT]: string;
+  [VesselProperty.DWT]: string;
+  [VesselProperty.status]: string;
+  [VesselProperty.speed]: string;
+  [VesselProperty.course]: string;
+  [VesselProperty.currentDraught]: string;
+  [VesselProperty.area]: string;
+  //   [VesselProperty.port]: string;
+  //   [VesselProperty.lastPort]: string;
+  [VesselProperty.destination]: string;
+  [VesselProperty.estimatedArrivalDate]: string;
+  [VesselProperty.lastReportDate]: string;
+  //   [property: string]: string | any;
+  [VesselProperty.port]: Record<string, string>;
+  [VesselProperty.lastPort]: Record<string, string>;
+  isFavorite?: boolean;
+  Coordinates: Coordinates;
+  href: string;
+}
+export interface Coordinates {
+  latitude: string;
+  longitude: string;
 }

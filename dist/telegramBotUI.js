@@ -49,29 +49,25 @@ class UI {
         else if (template === telegramBot_t_1.UI_template.vesselInfo) {
             const vessel = data;
             let text = "";
-            if (typeof vessel === "object") {
-                telegramBot_t_1.VesselPropertyArray.forEach((property) => {
-                    if (!vessel[property])
-                        return;
-                    let info;
-                    if (property === telegramBot_t_1.VesselProperty.estimatedArrivalDate || property === telegramBot_t_1.VesselProperty.lastReportDate) {
-                        info = UI.dateToLocaleString(vessel[property]);
-                    }
-                    else if (property === telegramBot_t_1.VesselProperty.flag) {
-                        info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
-                    }
-                    else if (property === telegramBot_t_1.VesselProperty.port || property === telegramBot_t_1.VesselProperty.lastPort) {
-                        info = UI.portToString(vessel[property], property === telegramBot_t_1.VesselProperty.port ? this.locale("arrived") : this.locale("departed"));
-                    }
-                    else
-                        info = vessel[property];
-                    if (vessel[property] && info) {
-                        text += `${this.locale(property)}: ${info} ${telegramBot_t_1.VesselMeasurementSystem[property] || ""}\n`;
-                    }
-                });
-            }
-            else
-                return { text: this.locale(telegramBot_t_1.UI_template.errorTrylater) };
+            telegramBot_t_1.VesselPropertyArray.forEach((property) => {
+                if (!vessel[property])
+                    return;
+                let info;
+                if (property === telegramBot_t_1.VesselProperty.estimatedArrivalDate || property === telegramBot_t_1.VesselProperty.lastReportDate) {
+                    info = UI.dateToLocaleString(vessel[property]);
+                }
+                else if (property === telegramBot_t_1.VesselProperty.flag) {
+                    info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
+                }
+                else if (property === telegramBot_t_1.VesselProperty.port || property === telegramBot_t_1.VesselProperty.lastPort) {
+                    info = UI.portToString(vessel[property], property === telegramBot_t_1.VesselProperty.port ? this.locale("arrived") : this.locale("departed"));
+                }
+                else
+                    info = vessel[property];
+                if (info) {
+                    text += `${this.locale(property)}: ${info} ${telegramBot_t_1.VesselMeasurementSystem[property] || ""} \n`;
+                }
+            });
             const inline_keyboard = [];
             const btnArray = [];
             btnArray.push({

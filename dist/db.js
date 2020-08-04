@@ -19,15 +19,14 @@ class DB {
                 chat_id,
                 message_id,
             },
-        });
+        }).catch((err) => console.error(err));
     }
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     static queryCreate(chat_id, message_id, data) {
         return models_1.Query.create({
             message_id,
             chat_id,
             data: JSON.stringify(data),
-        });
+        }).catch((err) => console.error(err));
     }
     static favoriteFindOne(user_id, data) {
         return models_1.Favorite.findOne({
@@ -35,7 +34,7 @@ class DB {
                 [sequelize_1.Op.and]: { user_id },
                 [sequelize_1.Op.or]: [{ mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { href: data[telegramBot_t_1.VesselProperty.href] }],
             },
-        });
+        }).catch((err) => console.error(err));
     }
     static favoriteFindOneOrCreate(user_id, data, href) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -47,16 +46,19 @@ class DB {
                     name: data[telegramBot_t_1.VesselProperty.name],
                     country: data[telegramBot_t_1.VesselProperty.flag],
                     href,
-                }));
+                }).catch((err) => console.error(err)));
         });
     }
     static favorites(user_id) {
-        return models_1.Favorite.findAll({ where: { user_id } });
+        return models_1.Favorite.findAll({ where: { user_id } }).catch((err) => {
+            console.error(err);
+            return [];
+        });
     }
     static favoriteRemove(user_id, href) {
         return __awaiter(this, void 0, void 0, function* () {
             const fav = yield this.favoriteFindOne(user_id, { href });
-            return fav && fav.destroy();
+            return fav && fav.destroy().catch((err) => console.error(err));
         });
     }
 }
