@@ -15,23 +15,26 @@ class UI {
             this.locale = locales[user.language_code];
         }
         else {
-            this.locale = locales["en"];
+            this.locale = locales.en;
         }
     }
-    localize(template, data) {
-        if (template == telegramBot_t_1.UI_template.queryIsTooOld ||
-            template == telegramBot_t_1.UI_template.photoNotAvailable ||
-            template == telegramBot_t_1.UI_template.errorTrylater ||
-            template == telegramBot_t_1.UI_template.favAdd ||
-            template == telegramBot_t_1.UI_template.favEmpty ||
-            template == telegramBot_t_1.UI_template.favRemove) {
+    localize(template, 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    data) {
+        if (template === telegramBot_t_1.UI_template.notFound ||
+            template === telegramBot_t_1.UI_template.queryIsTooOld ||
+            template === telegramBot_t_1.UI_template.photoNotAvailable ||
+            template === telegramBot_t_1.UI_template.errorTrylater ||
+            template === telegramBot_t_1.UI_template.favAdd ||
+            template === telegramBot_t_1.UI_template.favEmpty ||
+            template === telegramBot_t_1.UI_template.favRemove) {
             return { text: this.locale(template) };
         }
-        else if (template == telegramBot_t_1.UI_template.hello) {
+        else if (template === telegramBot_t_1.UI_template.hello) {
             return { text: this.locale("hello", this.user, botName) };
         }
-        else if (template == telegramBot_t_1.UI_template.menu) {
-            let inline_keyboard = [];
+        else if (template === telegramBot_t_1.UI_template.menu) {
+            const inline_keyboard = [];
             inline_keyboard.push([
                 {
                     text: this.locale("my_fleet"),
@@ -44,33 +47,30 @@ class UI {
             ]);
             return { text: this.locale("menu"), inline_keyboard };
         }
-        else if (template == telegramBot_t_1.UI_template.vesselInfo) {
-            let vessel = data;
+        else if (template === telegramBot_t_1.UI_template.vesselInfo) {
+            const vessel = data;
             let text = "";
-            if (typeof vessel === "object") {
-                telegramBot_t_1.VesselPropertyArray.forEach((property) => {
-                    if (!vessel[property])
-                        return;
-                    let info;
-                    if (property == telegramBot_t_1.VesselProperty.estimatedArrivalDate || property == telegramBot_t_1.VesselProperty.lastReportDate) {
-                        info = UI.dateToLocaleString(vessel[property]);
-                    }
-                    else if (property == telegramBot_t_1.VesselProperty.flag) {
-                        info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
-                    }
-                    else if (property == telegramBot_t_1.VesselProperty.port || property == telegramBot_t_1.VesselProperty.lastPort) {
-                        info = UI.portToString(vessel[property], property == telegramBot_t_1.VesselProperty.port ? this.locale("arrived") : this.locale("departed"));
-                    }
-                    else
-                        info = vessel[property];
-                    if (vessel[property] && info)
-                        text += `${this.locale(property)}: ${info} ${telegramBot_t_1.VesselMeasurementSystem[property] || ""}\n`;
-                });
-            }
-            else
-                return { text: this.locale(telegramBot_t_1.UI_template.errorTrylater) };
-            let inline_keyboard = [];
-            let btnArray = [];
+            telegramBot_t_1.VesselPropertyArray.forEach((property) => {
+                if (!vessel[property])
+                    return;
+                let info;
+                if (property === telegramBot_t_1.VesselProperty.estimatedArrivalDate || property === telegramBot_t_1.VesselProperty.lastReportDate) {
+                    info = UI.dateToLocaleString(vessel[property]);
+                }
+                else if (property === telegramBot_t_1.VesselProperty.flag) {
+                    info = `${UI.countryFlag(vessel[property])} ${vessel[property]}`;
+                }
+                else if (property === telegramBot_t_1.VesselProperty.port || property === telegramBot_t_1.VesselProperty.lastPort) {
+                    info = UI.portToString(vessel[property], property === telegramBot_t_1.VesselProperty.port ? this.locale("arrived") : this.locale("departed"));
+                }
+                else
+                    info = vessel[property];
+                if (info) {
+                    text += `${this.locale(property)}: ${info} ${telegramBot_t_1.VesselMeasurementSystem[property] || ""} \n`;
+                }
+            });
+            const inline_keyboard = [];
+            const btnArray = [];
             btnArray.push({
                 text: this.locale("location"),
                 callback_data: telegramBot_t_1.CallbackQueryActions.location,
@@ -86,23 +86,20 @@ class UI {
             inline_keyboard.push(btnArray);
             return { text, inline_keyboard };
         }
-        else if (template == telegramBot_t_1.UI_template.vesselList) {
-            let vessels = data;
-            let text = "";
-            text = this.locale("vessels_not_found");
-            if (vessels.length) {
-                vessels.length > 15 && (vessels.length = 15);
-                text = this.locale("found_vessels", vessels.length);
-            }
+        else if (template === telegramBot_t_1.UI_template.vesselList) {
+            const vessels = data;
+            vessels.length > 15 && (vessels.length = 15);
+            const text = this.locale("found_vessels", vessels.length);
             return { text, inline_keyboard: UI.buttonsGrid(this.vesselList(vessels), 3) };
         }
-        else if (telegramBot_t_1.UI_template.vesselListFav)
+        else if (telegramBot_t_1.UI_template.vesselListFav) {
             return { text: this.locale("my_fleet"), inline_keyboard: UI.buttonsGrid(this.vesselList(data), 3) };
+        }
         else
             return { text: this.locale() };
     }
     vesselList(vessels) {
-        let array = [];
+        const array = [];
         vessels.forEach((element, i) => {
             array.push({
                 text: `${UI.countryFlag(element.country)} ${element.name}`,
@@ -115,7 +112,7 @@ class UI {
         try {
             let output = "";
             output += `${UI.countryFlag(port.country)} ${port.name} `;
-            let dateStr = UI.dateToLocaleString(port.date);
+            const dateStr = UI.dateToLocaleString(port.date);
             if (dateStr)
                 output += `${dateStr} ${str}`;
             return output;
@@ -135,7 +132,7 @@ class UI {
     }
     static countryFlag(country) {
         try {
-            let res = countries.find((el) => el.cca2 == country || el.common.toUpperCase() == country.toUpperCase() || el.cca3 == country);
+            const res = countries.find((el) => el.cca2 === country || el.common.toUpperCase() === country.toUpperCase() || el.cca3 === country);
             return (res && res.flag) || country;
         }
         catch (error) {
@@ -143,11 +140,11 @@ class UI {
         }
     }
     static buttonsGrid(array, maxColumn) {
-        let keyboard = [];
+        const keyboard = [];
         for (let c = 0, i = 0; i < array.length; c++) {
             keyboard.push([]);
             keyboard.forEach((el, index) => {
-                if (c != index)
+                if (c !== index)
                     return;
                 for (let j = 1; j <= maxColumn && i < array.length; j++, i++) {
                     el.push(array[i]);

@@ -17,45 +17,48 @@ class DB {
         return models_1.Query.findOne({
             where: {
                 chat_id,
-                message_id
-            }
-        });
+                message_id,
+            },
+        }).catch((err) => console.error(err));
     }
-    static queryCreate(chat_id, message, data) {
-        let message_id = message.result.message_id;
+    static queryCreate(chat_id, message_id, data) {
         return models_1.Query.create({
             message_id,
             chat_id,
             data: JSON.stringify(data),
-        });
+        }).catch((err) => console.error(err));
     }
     static favoriteFindOne(user_id, data) {
         return models_1.Favorite.findOne({
             where: {
                 [sequelize_1.Op.and]: { user_id },
                 [sequelize_1.Op.or]: [{ mmsi: data[telegramBot_t_1.VesselProperty.MMSI] }, { href: data[telegramBot_t_1.VesselProperty.href] }],
-            }
-        });
+            },
+        }).catch((err) => console.error(err));
     }
     static favoriteFindOneOrCreate(user_id, data, href) {
         return __awaiter(this, void 0, void 0, function* () {
-            let fav = yield this.favoriteFindOne(user_id, data);
-            return fav || models_1.Favorite.create({
-                user_id,
-                mmsi: data[telegramBot_t_1.VesselProperty.MMSI],
-                name: data[telegramBot_t_1.VesselProperty.name],
-                country: data[telegramBot_t_1.VesselProperty.flag],
-                href
-            });
+            const fav = yield this.favoriteFindOne(user_id, data);
+            return (fav ||
+                models_1.Favorite.create({
+                    user_id,
+                    mmsi: data[telegramBot_t_1.VesselProperty.MMSI],
+                    name: data[telegramBot_t_1.VesselProperty.name],
+                    country: data[telegramBot_t_1.VesselProperty.flag],
+                    href,
+                }).catch((err) => console.error(err)));
         });
     }
     static favorites(user_id) {
-        return models_1.Favorite.findAll({ where: { user_id } });
+        return models_1.Favorite.findAll({ where: { user_id } }).catch((err) => {
+            console.error(err);
+            return [];
+        });
     }
     static favoriteRemove(user_id, href) {
         return __awaiter(this, void 0, void 0, function* () {
-            let fav = yield this.favoriteFindOne(user_id, { href });
-            return fav && fav.destroy();
+            const fav = yield this.favoriteFindOne(user_id, { href });
+            return fav && fav.destroy().catch((err) => console.error(err));
         });
     }
 }

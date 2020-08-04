@@ -1,77 +1,86 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const req = require("request-promise");
+const node_fetch_1 = require("node-fetch");
+const legacyURL = require("url");
 const telegramApi = process.env.telegram_API_URL + process.env.telegram_API_Key + "/";
-const request = req.defaults({
-    baseUrl: telegramApi,
-    json: true
-});
-function answerCallbackQuery(callback_query_id, text, show_alert, url, cache_time) {
-    return request.get({
-        url: "/answerCallbackQuery",
-        qs: {
-            callback_query_id
-        }
-    }).catch(err => console.error(err));
+function answerCallbackQuery(callback_query_id
+// text?: string,
+// show_alert?: boolean,
+// url?: string,
+// cache_time?: number
+) {
+    const url = legacyURL.format({
+        pathname: telegramApi + "answerCallbackQuery",
+        query: { callback_query_id },
+    });
+    return node_fetch_1.default(url)
+        .then((res) => res.json())
+        .catch((err) => console.error(err));
 }
 exports.answerCallbackQuery = answerCallbackQuery;
 function sendMessage(chat_id, text, reply_markup) {
-    let message = Object.assign({ chat_id,
-        text }, (reply_markup && { reply_markup: JSON.stringify(reply_markup) }));
-    return request.get({
-        url: "/sendMessage",
-        qs: message
-    }).catch(err => console.error(err));
+    const url = legacyURL.format({
+        pathname: telegramApi + "sendMessage",
+        query: Object.assign({ chat_id,
+            text }, (reply_markup && { reply_markup: JSON.stringify(reply_markup) })),
+    });
+    return node_fetch_1.default(url)
+        .then((res) => res.json())
+        .catch((err) => console.error(err));
 }
 exports.sendMessage = sendMessage;
 function sendLocation(chat_id, coordinates) {
-    if (coordinates && !coordinates.latitude && !coordinates.longitude) {
-        return Promise.reject("coordinates not available");
-    }
-    return request.get({
-        url: "/sendLocation",
-        qs: {
+    const url = legacyURL.format({
+        pathname: telegramApi + "sendLocation",
+        query: {
             chat_id,
             latitude: coordinates.latitude,
-            longitude: coordinates.longitude
-        }
-    }).catch(err => console.error(err));
+            longitude: coordinates.longitude,
+        },
+    });
+    return node_fetch_1.default(url)
+        .then((res) => res.json())
+        .catch((err) => console.error(err));
 }
 exports.sendLocation = sendLocation;
 function sendPhoto(chat_id, photo) {
-    return request.get({
-        url: "/sendPhoto",
-        qs: {
+    const url = legacyURL.format({
+        pathname: telegramApi + "sendPhoto",
+        query: {
             chat_id,
-            photo
-        }
-    }).catch(err => console.error(err));
+            photo,
+        },
+    });
+    return node_fetch_1.default(url)
+        .then((res) => res.json())
+        .catch((err) => console.error(err));
 }
 exports.sendPhoto = sendPhoto;
 function subscribe(callback) {
-    let offset = null;
-    let func = function (error, httpResponse, data) {
-        if (error || (httpResponse && httpResponse.statusCode != 200)) {
-            error && console.error(error);
-            httpResponse && console.warn(`httpResponse.statusCode: ${httpResponse.statusCode}`);
-            // setInterval(getUpdates, 120 * 1000)
-            return;
-        }
-        offset = data.result.length ? data.result[data.result.length - 1].update_id + 1 : null;
-        !data.ok && console.warn(data);
-        data.result.length && callback(data.result);
-        getUpdates();
-    };
-    getUpdates();
-    function getUpdates() {
-        request.get({
-            url: "/getupdates",
-            qs: {
-                offset: offset,
-                timeout: 120
+    function getUpdates(offset) {
+        const url = legacyURL.format({
+            pathname: telegramApi + "getupdates",
+            query: {
+                offset,
+                timeout: 120,
+            },
+        });
+        node_fetch_1.default(url)
+            .then((res) => res.json())
+            .then((data) => {
+            if (data.ok && data.result.length) {
+                callback(data.result);
+                getUpdates(data.result[data.result.length - 1].update_id + 1);
             }
-        }, func);
+            else if (data.ok) {
+                getUpdates(null);
+            }
+            else
+                throw Error("getUpdates responce data is not ok: " + JSON.stringify(data));
+        })
+            .catch((err) => console.error(err));
     }
+    getUpdates(null);
 }
 exports.subscribe = subscribe;
 //# sourceMappingURL=telegramAPI.js.map

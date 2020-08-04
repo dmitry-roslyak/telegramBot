@@ -1,20 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
-let sequelizeDefaultOptions = {
-    "define": {
-        "underscored": true,
-        "timestamps": true
+const sequelizeDefaultOptions = {
+    define: {
+        underscored: true,
+        timestamps: true,
     },
-    "logging": false
+    logging: false,
 };
-if (process.env.SSL_ENABLED == "true") {
-    sequelizeDefaultOptions["dialectOptions"] = {
-        "ssl": true
+if (process.env.SSL_ENABLED === "true") {
+    sequelizeDefaultOptions.dialectOptions = {
+        ssl: true,
     };
 }
 if (!process.env.DATABASE_URL)
-    throw "DATABASE_URL is undefined";
+    throw new Error("DATABASE_URL is undefined");
 const sequelize = new sequelize_1.Sequelize(process.env.DATABASE_URL, sequelizeDefaultOptions);
 exports.sequelize = sequelize;
 class Query extends sequelize_1.Model {

@@ -1,38 +1,37 @@
-import * as req from "request-promise";
-
-const request = req.defaults({
-    baseUrl: process.env.vessel_API,
-    json: true
-})
+import fetch from "node-fetch";
+import { VesselsList, Vessel } from "./telegramBot.t";
+const legacyURL = require("url");
 
 const vesselAPI = {
-    getOne: function (vesselHref: string) {
-        let pr = request.get({
-            url: "/view",
-            qs: {
-                vesselHref
-            }
-        })
-        pr.catch(err => console.error(err))
-        return pr
-    },
-    find: function (text: string) {
-        let pr = request.get({
-            url: "/search/" + text,
-        })
-        pr.catch(err => console.error(err))
-        return pr
-    },
-    imageFind: function (mmsi: string | number) {
-        let pr = request.get({
-            url: "/imageFind/",
-            qs: {
-                mmsi
-            }
-        })
-        pr.catch(err => console.error(err))
-        return pr
-    },
-}
+  getOne: function (vesselHref: string): Promise<Vessel> {
+    const url = legacyURL.format({
+      pathname: process.env.vessel_API + "/view",
+      query: { vesselHref },
+    });
 
-export default vesselAPI
+    return fetch(url)
+      .then((res) => res.ok && res.json())
+      .catch((err) => console.error(err));
+  },
+  find: function (text: string): Promise<Vessel | VesselsList> {
+    const url = legacyURL.format({
+      pathname: process.env.vessel_API + "/search/" + text,
+    });
+
+    return fetch(url)
+      .then((res) => res.ok && res.json())
+      .catch((err) => console.error(err));
+  },
+  imageFind: function (mmsi: string | number): Promise<string> {
+    const url = legacyURL.format({
+      pathname: process.env.vessel_API + "/imageFind/",
+      query: { mmsi },
+    });
+
+    return fetch(url)
+      .then((res) => (res.ok ? (res.text() as any) : null))
+      .catch((err) => console.error(err));
+  },
+};
+
+export default vesselAPI;
