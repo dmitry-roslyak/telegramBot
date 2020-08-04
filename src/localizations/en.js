@@ -28,23 +28,23 @@ const l = {
   contact_us: "💬 Cotact us",
   location: "🧭 Location",
   vessel_photo: "📷 Vessel photo",
-  vessels_not_found: "vessels_not_found",
+  notFound: "Couldn't found anything, next time I will try harder 💪",
   vessel_remove: "❌ Remove vessel",
-  vessel_add: "⭐ Add to my fleet",
+  vessel_add: "⭐ Add to fleet",
   errorTrylater: "⚠ Oops error happend, please try later",
   photoNotAvailable: "⚠ Sorry, photo not available for this vessel",
   queryIsTooOld: "⚠ Query result is too old, please submit new one",
-  vesselAddToFavorites: "🚢 Vessel has been added to your fleet! type /fleet to review",
-  vesselRemoveFromFavorites: "❌🚢 Vessel has been removed from your fleet",
+  vesselAddToFavorites: "🚢 The vessel added to your fleet! type /fleet to review",
+  vesselRemoveFromFavorites: "❌🚢 The vessel removed from your fleet",
   vesselFavoritesEmpty: "🌊 Your fleet is empty",
   found_vessels: function (length) {
-    return `Found vessels: ${length} 🔎🚢\nPlease select from the following 👇`;
+    return `Found vessels: ${length} 🔎🚢\nPlease, select from the following 👇`;
   },
   hello: function (user, botName) {
     return `👋 Hello ${user.first_name} ${user.last_name}, welcome to ${botName}!\n Here is my abilities:
 * Find vessels by name, mmsi/imo.
-* Show vessel latest info, location or view a photo.
-* Add vessels to your fleet. /fav to see fleet list.
+* Show vessel latest info, location, or view a photo.
+* Add vessels to your fleet. /fleet or /fav to see fleet list.
 Send any message to start searching  🔎`;
   },
 };

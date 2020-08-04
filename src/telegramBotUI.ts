@@ -37,6 +37,7 @@ class UI {
     data?: any
   ): { text: string; inline_keyboard?: Telegram.InlineKeyboardMarkup } {
     if (
+      template === UI_template.notFound ||
       template === UI_template.queryIsTooOld ||
       template === UI_template.photoNotAvailable ||
       template === UI_template.errorTrylater ||
@@ -104,13 +105,10 @@ class UI {
       return { text, inline_keyboard };
     } else if (template === UI_template.vesselList) {
       const vessels: VesselsList = data;
-      let text = "";
 
-      text = this.locale("vessels_not_found");
-      if (vessels.length) {
-        vessels.length > 15 && (vessels.length = 15);
-        text = this.locale("found_vessels", vessels.length);
-      }
+      vessels.length > 15 && (vessels.length = 15);
+      const text = this.locale("found_vessels", vessels.length);
+
       return { text, inline_keyboard: UI.buttonsGrid(this.vesselList(vessels), 3) };
     } else if (UI_template.vesselListFav) {
       return { text: this.locale("my_fleet"), inline_keyboard: UI.buttonsGrid(this.vesselList(data), 3) };

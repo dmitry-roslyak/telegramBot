@@ -75,6 +75,7 @@ export const VesselPropertyArray = [
 ];
 
 export enum UI_template {
+  notFound = "notFound",
   queryIsTooOld = "queryIsTooOld",
   photoNotAvailable = "photoNotAvailable",
   errorTrylater = "errorTrylater",

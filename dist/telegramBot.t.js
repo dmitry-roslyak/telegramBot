@@ -71,6 +71,7 @@ exports.VesselPropertyArray = [
 ];
 var UI_template;
 (function (UI_template) {
+    UI_template["notFound"] = "notFound";
     UI_template["queryIsTooOld"] = "queryIsTooOld";
     UI_template["photoNotAvailable"] = "photoNotAvailable";
     UI_template["errorTrylater"] = "errorTrylater";

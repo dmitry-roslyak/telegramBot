@@ -21,7 +21,8 @@ class UI {
     localize(template, 
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     data) {
-        if (template === telegramBot_t_1.UI_template.queryIsTooOld ||
+        if (template === telegramBot_t_1.UI_template.notFound ||
+            template === telegramBot_t_1.UI_template.queryIsTooOld ||
             template === telegramBot_t_1.UI_template.photoNotAvailable ||
             template === telegramBot_t_1.UI_template.errorTrylater ||
             template === telegramBot_t_1.UI_template.favAdd ||
@@ -87,12 +88,8 @@ class UI {
         }
         else if (template === telegramBot_t_1.UI_template.vesselList) {
             const vessels = data;
-            let text = "";
-            text = this.locale("vessels_not_found");
-            if (vessels.length) {
-                vessels.length > 15 && (vessels.length = 15);
-                text = this.locale("found_vessels", vessels.length);
-            }
+            vessels.length > 15 && (vessels.length = 15);
+            const text = this.locale("found_vessels", vessels.length);
             return { text, inline_keyboard: UI.buttonsGrid(this.vesselList(vessels), 3) };
         }
         else if (telegramBot_t_1.UI_template.vesselListFav) {

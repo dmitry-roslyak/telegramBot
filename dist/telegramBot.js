@@ -74,12 +74,14 @@ class UpdateHandler {
                 vesselsAPI_1.default
                     .find(text)
                     .then(this.vesselWithFavorite.bind(this))
-                    .then((vessel) => vessel ? this.sendMessage(telegramBot_t_1.UI_template.vesselInfo, vessel) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater));
+                    .then((vessel) => vessel ? this.sendMessage(telegramBot_t_1.UI_template.vesselInfo, vessel) : this.sendMessage(telegramBot_t_1.UI_template.notFound));
             }
             else {
                 vesselsAPI_1.default
                     .find(text)
-                    .then((vessels) => vessels ? this.sendMessage(telegramBot_t_1.UI_template.vesselList, vessels) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater));
+                    .then((vessels) => vessels && vessels.length
+                    ? this.sendMessage(telegramBot_t_1.UI_template.vesselList, vessels)
+                    : this.sendMessage(telegramBot_t_1.UI_template.notFound));
             }
         }
     }

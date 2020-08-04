@@ -69,13 +69,15 @@ class UpdateHandler {
           .find(text)
           .then(this.vesselWithFavorite.bind(this))
           .then((vessel) =>
-            vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.errorTrylater)
+            vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.notFound)
           );
       } else {
         vesselAPI
           .find(text)
           .then((vessels: VesselsList) =>
-            vessels ? this.sendMessage(UI_template.vesselList, vessels) : this.sendMessage(UI_template.errorTrylater)
+            vessels && vessels.length
+              ? this.sendMessage(UI_template.vesselList, vessels)
+              : this.sendMessage(UI_template.notFound)
           );
       }
     }
