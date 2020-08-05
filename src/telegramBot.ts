@@ -5,13 +5,7 @@ import { DB } from "./db";
 import { UI } from "./telegramBotUI";
 import { Telegram } from "./telegram";
 
-const answerCallbackActions = [
-  CallbackQueryActions.href,
-  CallbackQueryActions.location,
-  CallbackQueryActions.photo,
-  CallbackQueryActions.favoritesAdd,
-  CallbackQueryActions.favoritesRemove,
-] as string[];
+const answerCallbackActions = Object.keys(CallbackQueryActions);
 
 subscribe(function (messages) {
   messages.forEach((element) => new UpdateHandler(element));
@@ -39,18 +33,18 @@ class UpdateHandler {
       this.commandsHandler(element.message.text);
     } else if (element.callback_query && element.callback_query.message) {
       this.user = element.callback_query.from;
-      const action = element.callback_query.data.split(":");
-      if (answerCallbackActions.includes(action[0])) {
-        DB.queryfindOne(this.chat_id, element.callback_query.message.message_id).then((query) => {
-          if (!query) {
-            answerCallbackQuery(element.callback_query.id);
-            return this.sendMessage(UI_template.queryIsTooOld);
-          }
-          const data = JSON.parse(query.data);
-          const href = action.length === 2 ? data[action[1]].href : data.href;
-          this.callbackQueryHandler(element.callback_query, action[0], href, data);
-        });
-      } else this.callbackQueryHandler(element.callback_query, action[0]);
+      const [action, index] = element.callback_query.data.split(":");
+      if (answerCallbackActions.includes(action)) {
+        DB.queryfindOne(this.chat_id, element.callback_query.message.message_id)
+          .then((query) => {
+            if (!query) {
+              return this.sendMessage(UI_template.queryIsTooOld);
+            }
+            const data = JSON.parse(query.data);
+            return this.callbackQueryHandler(action, data instanceof Array ? data[+index] : data);
+          })
+          .then(() => answerCallbackQuery(element.callback_query.id));
+      } else this.sendMessage(UI_template.queryIsTooOld);
     }
   }
 
@@ -83,43 +77,33 @@ class UpdateHandler {
     }
   }
 
-  private callbackQueryHandler(callback_query: Telegram.CallbackQuery, action: string, href?: string, data?: any) {
+  private callbackQueryHandler(action: string, data: Vessel) {
     switch (action) {
       case CallbackQueryActions.href:
-        vesselAPI
-          .getOne(href)
+        return vesselAPI
+          .getOne(data[VesselProperty.href])
           .then(this.vesselWithFavorite.bind(this))
           .then((vessel) =>
             vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.errorTrylater)
-          )
-          .then(() => answerCallbackQuery(callback_query.id));
-        break;
+          );
       case CallbackQueryActions.location:
-        vesselAPI
-          .getOne(href)
+        return vesselAPI
+          .getOne(data[VesselProperty.href])
           .then((vessel) =>
             vessel ? sendLocation(this.chat_id, vessel.Coordinates) : this.sendMessage(UI_template.errorTrylater)
-          )
-          .then(() => answerCallbackQuery(callback_query.id));
-        break;
+          );
       case CallbackQueryActions.photo:
-        vesselAPI
+        return vesselAPI
           .imageFind(data[VesselProperty.MMSI])
           .then((imgSrc) =>
             imgSrc ? sendPhoto(this.chat_id, imgSrc) : this.sendMessage(UI_template.photoNotAvailable)
-          )
-          .then(() => answerCallbackQuery(callback_query.id));
-        break;
+          );
       case CallbackQueryActions.favoritesAdd:
-        DB.favoriteFindOneOrCreate(this.chat_id, data, href)
-          .then((fav) => this.sendMessage(fav ? UI_template.favAdd : UI_template.errorTrylater))
-          .then(() => answerCallbackQuery(callback_query.id));
-        break;
+        return DB.favoriteFindOneOrCreate(this.chat_id, data).then((fav) =>
+          this.sendMessage(fav ? UI_template.favAdd : UI_template.errorTrylater)
+        );
       case CallbackQueryActions.favoritesRemove:
-        DB.favoriteRemove(this.chat_id, href)
-          .then(() => this.sendMessage(UI_template.favRemove))
-          .then(() => answerCallbackQuery(callback_query.id));
-        break;
+        return DB.favoriteRemove(this.chat_id, data).then(() => this.sendMessage(UI_template.favRemove));
     }
   }
 
@@ -130,7 +114,7 @@ class UpdateHandler {
     });
   }
 
-  private async sendMessage(templateMessage: UI_template, data?: any) {
+  private async sendMessage(templateMessage: UI_template, data?: unknown) {
     let message;
     const localized = this.UI.localize(templateMessage, data);
     if (localized.inline_keyboard) {
