@@ -20,7 +20,7 @@ class DB {
     }).catch((err) => console.error(err));
   }
 
-  static favoriteFindOne(user_id: number, data: Vessel | Record<string, string>): Promise<Favorite | void> {
+  static favoriteFindOne(user_id: number, data: Vessel): Promise<Favorite | void> {
     return Favorite.findOne({
       where: {
         [Op.and]: { user_id },
@@ -29,7 +29,7 @@ class DB {
     }).catch((err) => console.error(err));
   }
 
-  static async favoriteFindOneOrCreate(user_id: number, data: Vessel, href: string): Promise<Favorite | void> {
+  static async favoriteFindOneOrCreate(user_id: number, data: Vessel): Promise<Favorite | void> {
     const fav = await this.favoriteFindOne(user_id, data);
 
     return (
@@ -39,7 +39,7 @@ class DB {
         mmsi: data[VesselProperty.MMSI],
         name: data[VesselProperty.name],
         country: data[VesselProperty.flag],
-        href,
+        href: data[VesselProperty.href],
       }).catch((err) => console.error(err))
     );
   }
@@ -51,8 +51,8 @@ class DB {
     });
   }
 
-  static async favoriteRemove(user_id: number, href: string): Promise<void> {
-    const fav = await this.favoriteFindOne(user_id, { href });
+  static async favoriteRemove(user_id: number, data: Vessel): Promise<void> {
+    const fav = await this.favoriteFindOne(user_id, data);
 
     return fav && fav.destroy().catch((err) => console.error(err));
   }

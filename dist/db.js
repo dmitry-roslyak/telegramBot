@@ -36,7 +36,7 @@ class DB {
             },
         }).catch((err) => console.error(err));
     }
-    static favoriteFindOneOrCreate(user_id, data, href) {
+    static favoriteFindOneOrCreate(user_id, data) {
         return __awaiter(this, void 0, void 0, function* () {
             const fav = yield this.favoriteFindOne(user_id, data);
             return (fav ||
@@ -45,7 +45,7 @@ class DB {
                     mmsi: data[telegramBot_t_1.VesselProperty.MMSI],
                     name: data[telegramBot_t_1.VesselProperty.name],
                     country: data[telegramBot_t_1.VesselProperty.flag],
-                    href,
+                    href: data[telegramBot_t_1.VesselProperty.href],
                 }).catch((err) => console.error(err)));
         });
     }
@@ -55,9 +55,9 @@ class DB {
             return [];
         });
     }
-    static favoriteRemove(user_id, href) {
+    static favoriteRemove(user_id, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const fav = yield this.favoriteFindOne(user_id, { href });
+            const fav = yield this.favoriteFindOne(user_id, data);
             return fav && fav.destroy().catch((err) => console.error(err));
         });
     }

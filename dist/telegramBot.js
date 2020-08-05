@@ -14,13 +14,7 @@ const vesselsAPI_1 = require("./vesselsAPI");
 const telegramBot_t_1 = require("./telegramBot.t");
 const db_1 = require("./db");
 const telegramBotUI_1 = require("./telegramBotUI");
-const answerCallbackActions = [
-    telegramBot_t_1.CallbackQueryActions.href,
-    telegramBot_t_1.CallbackQueryActions.location,
-    telegramBot_t_1.CallbackQueryActions.photo,
-    telegramBot_t_1.CallbackQueryActions.favoritesAdd,
-    telegramBot_t_1.CallbackQueryActions.favoritesRemove,
-];
+const answerCallbackActions = Object.keys(telegramBot_t_1.CallbackQueryActions);
 telegramAPI_1.subscribe(function (messages) {
     messages.forEach((element) => new UpdateHandler(element));
 });
@@ -32,20 +26,20 @@ class UpdateHandler {
         }
         else if (element.callback_query && element.callback_query.message) {
             this.user = element.callback_query.from;
-            const action = element.callback_query.data.split(":");
-            if (answerCallbackActions.includes(action[0])) {
-                db_1.DB.queryfindOne(this.chat_id, element.callback_query.message.message_id).then((query) => {
+            const [action, index] = element.callback_query.data.split(":");
+            if (answerCallbackActions.includes(action)) {
+                db_1.DB.queryfindOne(this.chat_id, element.callback_query.message.message_id)
+                    .then((query) => {
                     if (!query) {
-                        telegramAPI_1.answerCallbackQuery(element.callback_query.id);
                         return this.sendMessage(telegramBot_t_1.UI_template.queryIsTooOld);
                     }
                     const data = JSON.parse(query.data);
-                    const href = action.length === 2 ? data[action[1]].href : data.href;
-                    this.callbackQueryHandler(element.callback_query, action[0], href, data);
-                });
+                    return this.callbackQueryHandler(action, data instanceof Array ? data[+index] : data);
+                })
+                    .then(() => telegramAPI_1.answerCallbackQuery(element.callback_query.id));
             }
             else
-                this.callbackQueryHandler(element.callback_query, action[0]);
+                this.sendMessage(telegramBot_t_1.UI_template.queryIsTooOld);
         }
     }
     get chat_id() {
@@ -85,37 +79,25 @@ class UpdateHandler {
             }
         }
     }
-    callbackQueryHandler(callback_query, action, href, data) {
+    callbackQueryHandler(action, data) {
         switch (action) {
             case telegramBot_t_1.CallbackQueryActions.href:
-                vesselsAPI_1.default
-                    .getOne(href)
+                return vesselsAPI_1.default
+                    .getOne(data[telegramBot_t_1.VesselProperty.href])
                     .then(this.vesselWithFavorite.bind(this))
-                    .then((vessel) => vessel ? this.sendMessage(telegramBot_t_1.UI_template.vesselInfo, vessel) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater))
-                    .then(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
-                break;
+                    .then((vessel) => vessel ? this.sendMessage(telegramBot_t_1.UI_template.vesselInfo, vessel) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater));
             case telegramBot_t_1.CallbackQueryActions.location:
-                vesselsAPI_1.default
-                    .getOne(href)
-                    .then((vessel) => vessel ? telegramAPI_1.sendLocation(this.chat_id, vessel.Coordinates) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater))
-                    .then(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
-                break;
+                return vesselsAPI_1.default
+                    .getOne(data[telegramBot_t_1.VesselProperty.href])
+                    .then((vessel) => vessel ? telegramAPI_1.sendLocation(this.chat_id, vessel.Coordinates) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater));
             case telegramBot_t_1.CallbackQueryActions.photo:
-                vesselsAPI_1.default
+                return vesselsAPI_1.default
                     .imageFind(data[telegramBot_t_1.VesselProperty.MMSI])
-                    .then((imgSrc) => imgSrc ? telegramAPI_1.sendPhoto(this.chat_id, imgSrc) : this.sendMessage(telegramBot_t_1.UI_template.photoNotAvailable))
-                    .then(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
-                break;
+                    .then((imgSrc) => imgSrc ? telegramAPI_1.sendPhoto(this.chat_id, imgSrc) : this.sendMessage(telegramBot_t_1.UI_template.photoNotAvailable));
             case telegramBot_t_1.CallbackQueryActions.favoritesAdd:
-                db_1.DB.favoriteFindOneOrCreate(this.chat_id, data, href)
-                    .then((fav) => this.sendMessage(fav ? telegramBot_t_1.UI_template.favAdd : telegramBot_t_1.UI_template.errorTrylater))
-                    .then(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
-                break;
+                return db_1.DB.favoriteFindOneOrCreate(this.chat_id, data).then((fav) => this.sendMessage(fav ? telegramBot_t_1.UI_template.favAdd : telegramBot_t_1.UI_template.errorTrylater));
             case telegramBot_t_1.CallbackQueryActions.favoritesRemove:
-                db_1.DB.favoriteRemove(this.chat_id, href)
-                    .then(() => this.sendMessage(telegramBot_t_1.UI_template.favRemove))
-                    .then(() => telegramAPI_1.answerCallbackQuery(callback_query.id));
-                break;
+                return db_1.DB.favoriteRemove(this.chat_id, data).then(() => this.sendMessage(telegramBot_t_1.UI_template.favRemove));
         }
     }
     vesselWithFavorite(vessel) {
