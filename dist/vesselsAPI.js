@@ -6,7 +6,7 @@ const vesselAPI = {
     getOne: function (key, value) {
         const url = legacyURL.format({
             pathname: process.env.vessel_API + "/vessel",
-            query: { [key]: value },
+            query: { [key.toLowerCase()]: value },
         });
         return node_fetch_1.default(url)
             .then((res) => res.ok && res.json())
