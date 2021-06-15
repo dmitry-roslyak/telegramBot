@@ -26,7 +26,7 @@ class Favorite extends Model {
 
 Query.init(
   {
-    chat_id: { type: DataTypes.INTEGER },
+    chat_id: { type: DataTypes.BIGINT },
     message_id: { type: DataTypes.INTEGER },
     action: { type: DataTypes.STRING },
     data: DataTypes.TEXT,
@@ -36,7 +36,7 @@ Query.init(
 
 Favorite.init(
   {
-    user_id: { type: DataTypes.INTEGER },
+    user_id: { type: DataTypes.BIGINT },
     mmsi: { type: DataTypes.INTEGER },
     name: { type: DataTypes.STRING },
     country: DataTypes.STRING,

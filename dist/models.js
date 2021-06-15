@@ -24,13 +24,13 @@ class Favorite extends sequelize_1.Model {
 }
 exports.Favorite = Favorite;
 Query.init({
-    chat_id: { type: sequelize_1.DataTypes.INTEGER },
+    chat_id: { type: sequelize_1.DataTypes.BIGINT },
     message_id: { type: sequelize_1.DataTypes.INTEGER },
     action: { type: sequelize_1.DataTypes.STRING },
     data: sequelize_1.DataTypes.TEXT,
 }, { sequelize });
 Favorite.init({
-    user_id: { type: sequelize_1.DataTypes.INTEGER },
+    user_id: { type: sequelize_1.DataTypes.BIGINT },
     mmsi: { type: sequelize_1.DataTypes.INTEGER },
     name: { type: sequelize_1.DataTypes.STRING },
     country: sequelize_1.DataTypes.STRING,
