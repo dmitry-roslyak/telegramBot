@@ -8,6 +8,9 @@
     "start": "npm run build && env-cmd -f ./dev-remote.env node ./dist/telegramBot",
     "watch": "tsc -w"
   },
+  "engines": {
+    "node": "12.17.0"
+  },
   "dependencies": {
     "cross-env": "^5.2.0",
     "debug": "~2.6.9",
