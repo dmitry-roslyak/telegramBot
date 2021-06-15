@@ -6,14 +6,13 @@
     "heroku": "node ./dist/telegramBot",
     "build": "tsc",
     "start": "npm run build && env-cmd -f ./dev-remote.env node ./dist/telegramBot",
-    "debug": "env-cmd -f ./local.env node --inspect-brk ./dist/telegramBot",
     "watch": "tsc -w"
   },
   "dependencies": {
     "cross-env": "^5.2.0",
     "debug": "~2.6.9",
     "env-cmd": "^10.0.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "pg": "^7.11.0",
     "pg-hstore": "^2.3.3",
     "sequelize": "^5.15.1"
