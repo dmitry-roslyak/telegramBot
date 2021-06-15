@@ -3,19 +3,20 @@ import { VesselsList, Vessel } from "./telegramBot.t";
 const legacyURL = require("url");
 
 const vesselAPI = {
-  getOne: function (vesselHref: string): Promise<Vessel> {
+  getOne: function (key: string, value: string): Promise<Vessel> {
     const url = legacyURL.format({
-      pathname: process.env.vessel_API + "/view",
-      query: { vesselHref },
+      pathname: process.env.vessel_API + "/vessel",
+      query: { [key]: value },
     });
 
     return fetch(url)
       .then((res) => res.ok && res.json())
       .catch((err) => console.error(err));
   },
-  find: function (text: string): Promise<Vessel | VesselsList> {
+  find: function (name: string): Promise<VesselsList> {
     const url = legacyURL.format({
-      pathname: process.env.vessel_API + "/search/" + text,
+      pathname: process.env.vessel_API + "/vessel",
+      query: { name },
     });
 
     return fetch(url)
@@ -24,7 +25,7 @@ const vesselAPI = {
   },
   imageFind: function (mmsi: string | number): Promise<string> {
     const url = legacyURL.format({
-      pathname: process.env.vessel_API + "/imageFind/",
+      pathname: process.env.vessel_API + "/photo",
       query: { mmsi },
     });
 

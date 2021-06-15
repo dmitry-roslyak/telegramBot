@@ -66,8 +66,8 @@ class UpdateHandler {
         else if (text && text.length > 2) {
             if (/\d{7}|\d{9}/.test(text)) {
                 vesselsAPI_1.default
-                    .find(text)
-                    .then(this.vesselWithFavorite.bind(this))
+                    .getOne(telegramBot_t_1.VesselProperty.MMSI, text)
+                    .then((vessel) => this.vesselWithFavorite(vessel))
                     .then((vessel) => vessel ? this.sendMessage(telegramBot_t_1.UI_template.vesselInfo, vessel) : this.sendMessage(telegramBot_t_1.UI_template.notFound));
             }
             else {
@@ -83,12 +83,12 @@ class UpdateHandler {
         switch (action) {
             case telegramBot_t_1.CallbackQueryActions.href:
                 return vesselsAPI_1.default
-                    .getOne(data[telegramBot_t_1.VesselProperty.href])
-                    .then(this.vesselWithFavorite.bind(this))
+                    .getOne(telegramBot_t_1.VesselProperty.href, data[telegramBot_t_1.VesselProperty.href])
+                    .then((vessel) => this.vesselWithFavorite(vessel))
                     .then((vessel) => vessel ? this.sendMessage(telegramBot_t_1.UI_template.vesselInfo, vessel) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater));
             case telegramBot_t_1.CallbackQueryActions.location:
                 return vesselsAPI_1.default
-                    .getOne(data[telegramBot_t_1.VesselProperty.href])
+                    .getOne(telegramBot_t_1.VesselProperty.href, data[telegramBot_t_1.VesselProperty.href])
                     .then((vessel) => vessel ? telegramAPI_1.sendLocation(this.chat_id, vessel.Coordinates) : this.sendMessage(telegramBot_t_1.UI_template.errorTrylater));
             case telegramBot_t_1.CallbackQueryActions.photo:
                 return vesselsAPI_1.default

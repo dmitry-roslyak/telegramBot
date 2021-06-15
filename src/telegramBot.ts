@@ -1,6 +1,6 @@
 import { sendLocation, sendMessage, answerCallbackQuery, subscribe, sendPhoto } from "./telegramAPI";
 import vesselAPI from "./vesselsAPI";
-import { CallbackQueryActions, Vessel, VesselProperty, UI_template, VesselsList } from "./telegramBot.t";
+import { CallbackQueryActions, Vessel, VesselProperty, UI_template } from "./telegramBot.t";
 import { DB } from "./db";
 import { UI } from "./telegramBotUI";
 import { Telegram } from "./telegram";
@@ -60,15 +60,15 @@ class UpdateHandler {
     } else if (text && text.length > 2) {
       if (/\d{7}|\d{9}/.test(text)) {
         vesselAPI
-          .find(text)
-          .then(this.vesselWithFavorite.bind(this))
+          .getOne(VesselProperty.MMSI, text)
+          .then((vessel) => this.vesselWithFavorite(vessel))
           .then((vessel) =>
             vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.notFound)
           );
       } else {
         vesselAPI
           .find(text)
-          .then((vessels: VesselsList) =>
+          .then((vessels) =>
             vessels && vessels.length
               ? this.sendMessage(UI_template.vesselList, vessels)
               : this.sendMessage(UI_template.notFound)
@@ -81,14 +81,14 @@ class UpdateHandler {
     switch (action) {
       case CallbackQueryActions.href:
         return vesselAPI
-          .getOne(data[VesselProperty.href])
-          .then(this.vesselWithFavorite.bind(this))
+          .getOne(VesselProperty.href, data[VesselProperty.href])
+          .then((vessel) => this.vesselWithFavorite(vessel))
           .then((vessel) =>
             vessel ? this.sendMessage(UI_template.vesselInfo, vessel) : this.sendMessage(UI_template.errorTrylater)
           );
       case CallbackQueryActions.location:
         return vesselAPI
-          .getOne(data[VesselProperty.href])
+          .getOne(VesselProperty.href, data[VesselProperty.href])
           .then((vessel) =>
             vessel ? sendLocation(this.chat_id, vessel.Coordinates) : this.sendMessage(UI_template.errorTrylater)
           );
